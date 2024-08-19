@@ -7,13 +7,17 @@ import axios from "axios";
 import { SERVER_FONTS_API, SERVER_STATIC } from "../config.js";
 import { fileExists } from "../Services/Utility.js";
 
+interface Props {
+  sendPlayerInfo: (paused: boolean, time: number, src: string) => void;
+  options: any;
+  onReady: (player: any) => void;
+}
 
-
-export const VideoPlayer = (props: any) => {
+export const VideoPlayer: React.FC<Props> = ({ sendPlayerInfo, options, onReady }) => {
   const videoRef = React.useRef<any>(null);
   const playerRef = React.useRef<any>(null);
-  const { options, onReady } = props;
   const subtitlesRef = React.useRef<any>(null);
+  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     // Make sure Video.js player is only initialized once
@@ -44,8 +48,16 @@ export const VideoPlayer = (props: any) => {
   // Dispose the Video.js player when the functional component unmounts
   React.useEffect(() => {
     const player = playerRef.current;
+    const syncVideo = () => {
+      sendPlayerInfo(player.paused(), player.currentTime(), player.currentSource().src);
+    };
+
+    intervalRef.current = setInterval(syncVideo, 700);
 
     return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
       if (player && !player.isDisposed()) {
         player.dispose();
         playerRef.current = null;
@@ -76,7 +88,10 @@ export const VideoPlayer = (props: any) => {
           const fonts = await res.data;
           subtitlesRef.current = new SubtitlesOctopus({
             video: videoElement,
-            subUrl: videoElement.src.replace(".mkv", ".ass").replace(".mp4", ".ass").replace(".webm", ".ass"),
+            subUrl: videoElement.src
+              .replace(".mkv", ".ass")
+              .replace(".mp4", ".ass")
+              .replace(".webm", ".ass"),
             fonts: fonts.map((font: string) => "/media/fonts/" + font),
             workerUrl: SERVER_STATIC + "subtitles-octopus-worker.js",
             legacyWorkerUrl:

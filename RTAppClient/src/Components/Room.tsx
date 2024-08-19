@@ -20,7 +20,6 @@ const videoJsOptions = {
   ],
 };
 
-
 interface Props {
   changeTitle: (newTitle: string) => void;
   invoke: (message: string, ...args: any[]) => void;
@@ -95,12 +94,19 @@ const Room: React.FC<Props> = ({
     await invoke("SendPlayerInfo", roomName ?? "", true, 0, SERVER_URL + path);
     changeTitle(path.split("/").pop() ?? "");
   };
+  const sendInfo = async (paused: boolean, time: number, src: string) => {
+    await invoke("SendPlayerInfo", roomName ?? "", paused, time, src);
+  };
 
   return (
     <>
       <Flex direction="column" className="w-[75%] h-full ">
         <div className="h-[65%]" ref={playerDivRef}>
-          <VideoPlayer options={videoJsOptions} onReady={handlePlayerReady} />
+          <VideoPlayer
+            options={videoJsOptions}
+            onReady={handlePlayerReady}
+            sendPlayerInfo={sendInfo}
+          />
         </div>
         <div className="grow">
           <FileViewer changeSource={changeSource} />
