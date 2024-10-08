@@ -17,7 +17,7 @@ const UserCard: React.FC<Props> = ({ user }) => {
     >
       <img
         className="w-[32px] h-[32px] rounded-full"
-        src={SERVER_STATIC + user.image}
+        src={SERVER_STATIC + '/' + user.image}
         alt={`${user.name}'s avatar`}
       />
       <span className="text-lg font-bold pl-2">{user.name}</span>
