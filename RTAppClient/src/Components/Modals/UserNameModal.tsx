@@ -1,5 +1,6 @@
 import {
   Button,
+  Flex,
   FormLabel,
   Input,
   Modal,
@@ -47,9 +48,12 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
+            
+            <FormLabel>Icon</FormLabel>
+            <SelectUserIcon />
           </ModalBody>
           <ModalFooter>
-            <Button type="submit" colorScheme="blue" mr={3}>
+            <Button type="submit" colorScheme="blue" className="mr-3">
               Save
             </Button>
           </ModalFooter>
@@ -58,5 +62,18 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
     </Modal>
   );
 };
+
+const SelectUserIcon = () => {
+  const [selectedIndex, selectIndex] = useState<number>(0);
+
+  return (
+    <Flex>
+      <img className="w-20" src="../../../public/image.png" alt="icon"></img>
+      <img className="w-20" src="../../../public/image.png" alt="icon"></img>
+      <img className="w-20" src="../../../public/image.png" alt="icon"></img>
+
+    </Flex>
+  )
+}
 
 export default UserNameModal;
