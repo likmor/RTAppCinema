@@ -1,6 +1,6 @@
 import {
+  Avatar,
   Button,
-  Flex,
   FormLabel,
   Input,
   Modal,
@@ -9,6 +9,8 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 interface ModalProps {
@@ -40,7 +42,7 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
       <ModalContent>
         <ModalHeader>Enter your nickname</ModalHeader>
         <form onSubmit={(e) => handleSubmit(e)}>
-          <ModalBody pb={6}>
+          <ModalBody pb={4}>
             <FormLabel>Nickname</FormLabel>
             <Input
               ref={initialRef}
@@ -48,8 +50,8 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
-            
-            <FormLabel>Icon</FormLabel>
+
+            <FormLabel pt="2">Icon</FormLabel>
             <SelectUserIcon />
           </ModalBody>
           <ModalFooter>
@@ -64,15 +66,42 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
 };
 
 const SelectUserIcon = () => {
-  const [selectedIndex, selectIndex] = useState<number>(0);
+  const [selectedIndex, selectIndex] = useState<number>(1);
+  const map = [
+    {
+      Id: 1,
+      src: "/image.png"
+    },
 
+    {
+      Id: 2,
+      src: "/image.png"
+    },
+    {
+      Id: 3,
+      src: "/image.png"
+    },
+    {
+      Id: 4,
+      src: "/image.png"
+    },
+    {
+      Id: 5,
+      src: "/image.png"
+    }
+  ]
   return (
-    <Flex>
-      <img className="w-20" src="../../../public/image.png" alt="icon"></img>
-      <img className="w-20" src="../../../public/image.png" alt="icon"></img>
-      <img className="w-20" src="../../../public/image.png" alt="icon"></img>
+    <Wrap justify="center">
+      {map.map((icon) =>
+        <WrapItem>
+          {selectedIndex == icon.Id ?
+            <Avatar outline="5px solid blue" shadow="2xl" size="xl" src={icon.src} onClick={() => selectIndex(icon.Id)}></Avatar> :
+            <Avatar shadow="2xl" size="xl" src={icon.src} onClick={() => selectIndex(icon.Id)}></Avatar>
+          }
+        </WrapItem>
+      )}
 
-    </Flex>
+    </Wrap>
   )
 }
 
