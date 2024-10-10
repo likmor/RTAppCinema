@@ -66,6 +66,7 @@ function App() {
   const [roomMessages, setRoomMessages] = useState<RoomMessages[]>([]);
   const [roomUsers, setRoomUsers] = useState<RoomUsers[]>([]);
   const [players, setPlayers] = useState<Players[]>([]);
+  const [avatarIds, setAvatarIds] = useState<string[]>([]);
   const [title, setTitle] = useState<string>("");
 
   const {
@@ -91,16 +92,11 @@ function App() {
   let path = useLocation().pathname;
 
   useEffect(() => {
-    const getData = async () => {
-      if (token == null) {
-        const response = await axios.post(
-          SERVER_LOGIN_API
-        );
-        await localStorage.setItem("jwt", response.data.token);
-      }
-    };
-
     const startSignalRConnection = async (token: string) => {
+      if (hubConnection && hubConnection.state === HubConnectionState.Connected) {
+        console.log('Already connected to the hub.');
+        return;
+      }
       const connection = new HubConnectionBuilder()
         .withUrl(SERVER_HUB, {
           accessTokenFactory: () => token ?? "",
@@ -108,103 +104,104 @@ function App() {
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Information)
         .build();
-
-      connection
-        .start()
-        .then(() => {
-          console.log("Connected to SignalR Hub");
-
-          connection
-            .invoke("JoinMainRoom", "user")
-            .then(() => console.log("Joined main room successfully"))
-            .catch((err) => console.error("Error joining room:", err));
-
-          connection.on("ReceiveRoomsList", (message: string[]) => {
-            setRooms(message);
-          });
-
-          connection.on("ReceiveError", (message: string) => {
-            setRoomExists(true);
-
-            console.log(message);
-          });
-          connection.on("ReceiveSuccess", () => {
-            onCreateRoomModalClose();
-          });
-          connection.on(
-            "ReceiveMessage",
-            (roomName: string, user: string, text: string) => {
-              addMessageToRoom(roomName, { user, text });
-            }
-          );
-          connection.on("ReceiveFileList", (files: any) => {
-            console.log(files);
-          });
-
-          connection.on(
-            "ReceiveRoomInfo",
-            (
-              roomName: string,
-              users: { name: string; image: string; owner: boolean }[]
-            ) => {
-              setRoomUsers((prevState) => {
-                const roomIndex = prevState.findIndex(
-                  (room) => room.roomName === roomName
-                );
-
-                if (roomIndex > -1) {
-                  const updatedRooms = [...prevState];
-                  updatedRooms[roomIndex] = { roomName, users };
-                  return updatedRooms;
-                } else {
-                  return [...prevState, { roomName, users }];
-                }
-              });
-            }
-          );
-          connection.on(
-            "ReceivePlayerInfo",
-            (roomName: string, player: PlayerInfo) => {
-              setPlayers((prevState) => {
-                const roomIndex = prevState.findIndex(
-                  (room) => room.roomName === roomName
-                );
-
-                if (roomIndex > -1) {
-                  const updatedRooms = [...prevState];
-                  updatedRooms[roomIndex] = { roomName, playerInfo: player };
-                  return updatedRooms;
-                } else {
-                  return [...prevState, { roomName, playerInfo: player }];
-                }
-              });
-            }
-          );
-        })
-        .catch((err) => console.error("Error connecting to SignalR Hub:", err));
-      setHubConnection(connection);
-
-      return () => {
-        connection
-          .stop()
-          .then(() => console.log("Disconnected from SignalR Hub"))
-          .catch((err) =>
-            console.error("Error disconnecting from SignalR Hub:", err)
-          );
-      };
-    };
-    const token = localStorage.getItem("jwt");
-    if (token) {
-      startSignalRConnection(token);
-    } else {
-      getData().then(() => {
-        const newToken = localStorage.getItem("jwt");
-        if (newToken) {
-          startSignalRConnection(newToken);
-        }
+      connection.on("ReceiveRoomsList", (message: string[]) => {
+        setRooms(message);
       });
-    }
-  }, []);
+
+      connection.on("ReceiveAvatarIds", (message: string[]) => {
+        setAvatarIds(message);
+      });
+
+      connection.on("ReceiveError", (message: string) => {
+        setRoomExists(true);
+
+        console.log(message);
+      });
+      connection.on("ReceiveSuccess", () => {
+        onCreateRoomModalClose();
+      });
+      connection.on(
+        "ReceiveMessage",
+        (roomName: string, user: string, text: string) => {
+          addMessageToRoom(roomName, { user, text });
+        }
+      );
+      connection.on("ReceiveFileList", (files: any) => {
+        console.log(files);
+      });
+
+      connection.on(
+        "ReceiveRoomInfo",
+        (
+          roomName: string,
+          users: { name: string; image: string; owner: boolean }[]
+        ) => {
+          setRoomUsers((prevState) => {
+            const roomIndex = prevState.findIndex(
+              (room) => room.roomName === roomName
+            );
+
+            if (roomIndex > -1) {
+              const updatedRooms = [...prevState];
+              updatedRooms[roomIndex] = { roomName, users };
+              return updatedRooms;
+            } else {
+              return [...prevState, { roomName, users }];
+            }
+          });
+        }
+      );
+      connection.on(
+        "ReceivePlayerInfo",
+        (roomName: string, player: PlayerInfo) => {
+          setPlayers((prevState) => {
+            const roomIndex = prevState.findIndex(
+              (room) => room.roomName === roomName
+            );
+
+            if (roomIndex > -1) {
+              const updatedRooms = [...prevState];
+              updatedRooms[roomIndex] = { roomName, playerInfo: player };
+              return updatedRooms;
+            } else {
+              return [...prevState, { roomName, playerInfo: player }];
+            }
+          });
+        }
+      );
+
+      try {
+        await connection.start();
+        console.log('Connected to SignalR Hub');
+        setHubConnection(connection);
+
+        await connection.invoke('JoinMainRoom', 'user');
+        console.log('Joined main room successfully');
+      } catch (err) {
+        console.error('Error connecting to SignalR Hub:', err);
+      }
+
+    };
+
+    const fetchTokenAndConnect = async () => {
+      let token = localStorage.getItem('jwt');
+      if (!token) {
+        const response = await axios.post(SERVER_LOGIN_API);
+        token = response.data.token;
+        localStorage.setItem('jwt', token ?? "");
+      }
+      await startSignalRConnection(token ?? "");
+    };
+
+    fetchTokenAndConnect();
+    return () => {
+      if (hubConnection) {
+        hubConnection.stop()
+          .then(() => console.log('Disconnected from SignalR Hub'))
+          .catch(err => console.error('Error disconnecting from SignalR Hub:', err));
+      }
+    };
+  }, [hubConnection]);
 
   const addMessageToRoom = (roomName: string, newMessage: MessageProp) => {
     setRoomMessages((prevRoomMessages) => {
@@ -260,6 +257,7 @@ function App() {
         <UserNameModal
           isOpen={isUserNameModalOpen}
           onClose={onUserNameModalClose}
+          avatarIds={avatarIds}
         />
         <CreateRoomModal
           isOpen={isCreateRoomModalOpen}

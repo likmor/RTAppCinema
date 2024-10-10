@@ -13,15 +13,17 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
+import { SERVER_STATIC } from "../../config";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  avatarIds: string[];
 }
 
-const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
+const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose, avatarIds }) => {
   const initialRef = React.useRef(null);
   const [username, setUsername] = useState<string>("");
-
+  const [selectedAvatarId, changeAvatarId] = useState<string>(avatarIds.at(0) ?? "");
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (username.trim()) {
@@ -52,7 +54,11 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
             />
 
             <FormLabel pt="2">Icon</FormLabel>
-            <SelectUserIcon />
+            <SelectUserIcon
+              selectedAvatarId={selectedAvatarId}
+              changeAvatarId={changeAvatarId}
+              avatarIds={avatarIds}
+            />
           </ModalBody>
           <ModalFooter>
             <Button type="submit" colorScheme="blue" className="mr-3">
@@ -65,39 +71,23 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
   );
 };
 
-const SelectUserIcon = () => {
-  const [selectedIndex, selectIndex] = useState<number>(1);
-  const map = [
-    {
-      Id: 1,
-      src: "/image.png"
-    },
-
-    {
-      Id: 2,
-      src: "/image.png"
-    },
-    {
-      Id: 3,
-      src: "/image.png"
-    },
-    {
-      Id: 4,
-      src: "/image.png"
-    },
-    {
-      Id: 5,
-      src: "/image.png"
-    }
-  ]
+interface SelectUserIconProps {
+  selectedAvatarId: string;
+  changeAvatarId: (id: string) => void;
+  avatarIds: string[];
+}
+const SelectUserIcon: React.FC<SelectUserIconProps> = ({ selectedAvatarId, changeAvatarId, avatarIds }) => {
   return (
     <Wrap justify="center">
-      {map.map((icon) =>
-        <WrapItem>
-          {selectedIndex == icon.Id ?
-            <Avatar outline="5px solid blue" shadow="2xl" size="xl" src={icon.src} onClick={() => selectIndex(icon.Id)}></Avatar> :
-            <Avatar shadow="2xl" size="xl" src={icon.src} onClick={() => selectIndex(icon.Id)}></Avatar>
-          }
+      {avatarIds.map((id) =>
+        <WrapItem key={id}>
+          <Avatar
+            outline={selectedAvatarId === id ? "5px solid blue" : undefined}
+            shadow="2xl"
+            size="xl"
+            src={SERVER_STATIC + '/' + id + ".png"}
+            onClick={() => changeAvatarId(id)}
+          />
         </WrapItem>
       )}
 
