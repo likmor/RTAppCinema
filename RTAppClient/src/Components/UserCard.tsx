@@ -1,4 +1,4 @@
-import { Flex } from "@chakra-ui/react";
+import { Avatar, Flex } from "@chakra-ui/react";
 import { FaKey } from "react-icons/fa";
 import { SERVER_STATIC } from "../config";
 import { User } from "./types/types";
@@ -15,11 +15,16 @@ const UserCard: React.FC<Props> = ({ user }) => {
       className="w-full h-[85%] justify-center"
       overflow="hidden"
     >
-      <img
+      {/* <img
         className="w-[32px] h-[32px] rounded-full"
-        src={SERVER_STATIC + '/' + user.image}
+        src={SERVER_STATIC + '/avatars/' + user.image}
         alt={`${user.name}'s avatar`}
-      />
+      /> */}
+          <Avatar
+            shadow="2xl"
+            size="md"
+            src={SERVER_STATIC + '/avatars/' + user.image}
+          />
       <span className="text-lg font-bold pl-2">{user.name}</span>
       {user.owner && <FaKey className="w-[32px] h-[32px]" />}
     </Flex>

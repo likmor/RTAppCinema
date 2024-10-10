@@ -74,7 +74,7 @@ public class FilesController : ControllerBase
         string? directoryPath = _configuration["Avatars:Path"];
         if (directoryPath is null)
             return StatusCode(500);
-        var result = Directory.GetFiles(directoryPath).Select(file => file.Replace(directoryPath + "\\", ""));
+        var result = Directory.GetFiles(directoryPath).Select(file => file.Replace(directoryPath + "/", ""));
 
         return Ok(result);
     }

@@ -18,25 +18,28 @@ import axios from "axios";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  invokeMessage: (message: string, ...arg: string[]) => void;
 }
 
-const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
+const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose, invokeMessage }) => {
+  const initialRef = React.useRef(null);
+  const [username, setUsername] = useState<string>("");
+  const [selectedAvatarId, setAvatarId] = useState<string>("");
+  const [avatarIds, setAvatarIds] = useState<string[]>([]);
+
   useEffect(() => {
     const fetch = async () => {
       const response = await axios.get(SERVER_AVATARS_API);
       const data = await response.data;
-      console.log(data);
+      setAvatarIds(data);
     }
     fetch();
-  },[])
+  }, [])
 
-  const initialRef = React.useRef(null);
-  const [username, setUsername] = useState<string>("");
-  const [selectedAvatarId, changeAvatarId] = useState<string>("");
-  const [avatarIds, setAvatarIds] = useState<string>([]);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (username.trim()) {
+      invokeMessage("UpdateProfile", username, selectedAvatarId);
       localStorage.setItem("UserName", username.trim());
       onClose();
     } else {
@@ -66,7 +69,7 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
             <FormLabel pt="2">Icon</FormLabel>
             <SelectUserIcon
               selectedAvatarId={selectedAvatarId}
-              changeAvatarId={changeAvatarId}
+              setAvatarId={setAvatarId}
               avatarIds={avatarIds}
             />
           </ModalBody>
@@ -83,10 +86,10 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
 
 interface SelectUserIconProps {
   selectedAvatarId: string;
-  changeAvatarId: (id: string) => void;
+  setAvatarId: (id: string) => void;
   avatarIds: string[];
 }
-const SelectUserIcon: React.FC<SelectUserIconProps> = ({ selectedAvatarId, changeAvatarId, avatarIds }) => {
+const SelectUserIcon: React.FC<SelectUserIconProps> = ({ selectedAvatarId, setAvatarId, avatarIds }) => {
   return (
     <Wrap justify="center">
       {avatarIds.map((id) =>
@@ -95,8 +98,8 @@ const SelectUserIcon: React.FC<SelectUserIconProps> = ({ selectedAvatarId, chang
             outline={selectedAvatarId === id ? "5px solid blue" : undefined}
             shadow="2xl"
             size="xl"
-            src={SERVER_STATIC + '/' + id + ".png"}
-            onClick={() => changeAvatarId(id)}
+            src={SERVER_STATIC + '/avatars/' + id}
+            onClick={() => setAvatarId(id)}
           />
         </WrapItem>
       )}

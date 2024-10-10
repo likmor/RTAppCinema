@@ -149,7 +149,7 @@ namespace RTApp.Hubs
                 Select(item => new
                 {
                     name = _userService.GetNickname(item.Token),
-                    image = "user.png",
+                    image = _userService.GetAvatarId(item.Token),
                     owner = item.IsAdmin
                 });
             await Clients.Group(roomName).SendAsync("ReceiveRoomInfo", roomName, users);
@@ -181,9 +181,24 @@ namespace RTApp.Hubs
             var playerInfo = RoomPlayer.GetValueOrDefault(roomName);
             if (playerInfo != null)
             {
-                Clients.OthersInGroup(roomName).SendAsync("ReceivePlayerInfo", roomName, new { playerInfo.IsPaused, playerInfo.currentTime, playerInfo.Name});
+                Clients.OthersInGroup(roomName).SendAsync("ReceivePlayerInfo", roomName, new { playerInfo.IsPaused, playerInfo.currentTime, playerInfo.Name });
 
             }
+        }
+        public async Task UpdateProfile(string username, string avatarId)
+        {
+            string token = GetUserToken();
+            _userService.AddOrUpdateNickname(token, username);
+            _userService.AddOrUpdateAvatarId(token, avatarId);
+            var matchingRooms = RoomMembers
+                .Where(i => i.Value.Any(j => j.Token == token))
+                .Select(i => i.Key);
+
+            foreach (var room in matchingRooms)
+            {
+                SendRoomInfo(room);
+            }
+
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)

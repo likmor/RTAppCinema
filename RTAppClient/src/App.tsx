@@ -252,6 +252,7 @@ function App() {
         <UserNameModal
           isOpen={isUserNameModalOpen}
           onClose={onUserNameModalClose}
+          invokeMessage={InvokeMessage}
         />
         <CreateRoomModal
           isOpen={isCreateRoomModalOpen}
