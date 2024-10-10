@@ -3,6 +3,11 @@ export interface Message {
   text: string;
 }
 
+export interface Room {
+  roomName: string;
+  roomMembers: string[];
+}
+
 export interface RoomMessages {
   roomName: string;
   messages: Message[];

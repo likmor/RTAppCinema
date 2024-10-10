@@ -9,7 +9,6 @@ const ChatMessage: React.FC<{ message: Message }> = ({ message }) => {
         shadow="2xl"
         size="xs"
         src={SERVER_STATIC + "/avatars/" + message.user.image}
-        ignoreFallback={true}
       />
       <span className="text-sm text-slate-300">{message.user.name}</span>
       <div className="bg-slate-600 rounded-lg shadow-lg p-2">

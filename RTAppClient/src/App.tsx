@@ -29,6 +29,11 @@ import Room from "./Components/Room";
 import axios from "axios";
 import { SERVER_HUB, SERVER_LOGIN_API } from "./config";
 
+interface Room {
+  roomName: string;
+  roomMembers: string[];
+}
+
 interface RoomMessages {
   roomName: string;
   messages: MessageProp[];
@@ -61,7 +66,7 @@ interface Players {
 
 function App() {
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<string[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [roomExists, setRoomExists] = useState<boolean>(false);
   const [roomMessages, setRoomMessages] = useState<RoomMessages[]>([]);
   const [roomUsers, setRoomUsers] = useState<RoomUsers[]>([]);
@@ -106,9 +111,10 @@ function App() {
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Information)
         .build();
-      connection.on("ReceiveRoomsList", (message: string[]) => {
-        setRooms(message);
-      });
+        connection.on("ReceiveRoomsList", (message: Room[]) => {
+          console.log(message);
+          setRooms(message);
+        });
 
       connection.on("ReceiveError", (message: string) => {
         setRoomExists(true);

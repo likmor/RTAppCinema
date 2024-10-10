@@ -69,7 +69,11 @@ namespace RTApp.Hubs
             {
                 room.Add(new RoomMember { Token = token, IsAdmin = false });
             }
-            await Clients.Caller.SendAsync("ReceiveRoomsList", RoomMembers.Keys);
+
+            var roomUsers = RoomMembers.Select(x => new { roomName = x.Key, 
+                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+            });
+            await Clients.Caller.SendAsync("ReceiveRoomsList", roomUsers);
             Console.WriteLine($"Token {token} joined room main");
 
         }
@@ -94,7 +98,13 @@ namespace RTApp.Hubs
                 room.Add(new RoomMember { Token = token, IsAdmin = true });
             }
             await Clients.Caller.SendAsync("ReceiveSuccess", $"Room {roomName} created with token {token}!");
-            await Clients.Group("main").SendAsync("ReceiveRoomsList", RoomMembers.Keys);
+
+
+            var roomUsers = RoomMembers.Select(x => new {
+                roomName = x.Key,
+                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+            });
+            await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
         }
         public async Task JoinRoom(string user, string roomName)
         {
@@ -117,6 +127,11 @@ namespace RTApp.Hubs
             SendRoomInfo(roomName);
             Console.WriteLine($"Token {token} joined room {roomName}");
 
+            var roomUsers = RoomMembers.Select(x => new {
+                roomName = x.Key,
+                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+            });
+            await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
             //ReceiveFileList();
         }
         //public async Task ReceiveFileList()
@@ -208,6 +223,11 @@ namespace RTApp.Hubs
                 SendRoomInfo(room);
             }
 
+            var roomUsers = RoomMembers.Select(x => new {
+                roomName = x.Key,
+                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+            });
+            await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
@@ -238,6 +258,11 @@ namespace RTApp.Hubs
                 }
             }
 
+            var roomUsers = RoomMembers.Select(x => new {
+                roomName = x.Key,
+                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+            });
+            await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
             //foreach (var connection in ConnectionUserNames)
             //{
             //    if (connection.Key == connectionId)
