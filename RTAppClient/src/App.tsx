@@ -35,7 +35,7 @@ interface RoomMessages {
 }
 
 interface MessageProp {
-  user: string;
+  user: User;
   text: string;
 }
 
@@ -92,8 +92,11 @@ function App() {
 
   useEffect(() => {
     const startSignalRConnection = async (token: string) => {
-      if (hubConnection && hubConnection.state === HubConnectionState.Connected) {
-        console.log('Already connected to the hub.');
+      if (
+        hubConnection &&
+        hubConnection.state === HubConnectionState.Connected
+      ) {
+        console.log("Already connected to the hub.");
         return;
       }
       const connection = new HubConnectionBuilder()
@@ -117,7 +120,7 @@ function App() {
       });
       connection.on(
         "ReceiveMessage",
-        (roomName: string, user: string, text: string) => {
+        (roomName: string, user: User, text: string) => {
           addMessageToRoom(roomName, { user, text });
         }
       );
@@ -167,23 +170,22 @@ function App() {
 
       try {
         await connection.start();
-        console.log('Connected to SignalR Hub');
+        console.log("Connected to SignalR Hub");
         setHubConnection(connection);
 
-        await connection.invoke('JoinMainRoom', 'user');
-        console.log('Joined main room successfully');
+        await connection.invoke("JoinMainRoom", "user");
+        console.log("Joined main room successfully");
       } catch (err) {
-        console.error('Error connecting to SignalR Hub:', err);
+        console.error("Error connecting to SignalR Hub:", err);
       }
-
     };
 
     const fetchTokenAndConnect = async () => {
-      let token = localStorage.getItem('jwt');
+      let token = localStorage.getItem("jwt");
       if (!token) {
         const response = await axios.post(SERVER_LOGIN_API);
         token = response.data.token;
-        localStorage.setItem('jwt', token ?? "");
+        localStorage.setItem("jwt", token ?? "");
       }
       await startSignalRConnection(token ?? "");
     };
@@ -191,9 +193,12 @@ function App() {
     fetchTokenAndConnect();
     return () => {
       if (hubConnection) {
-        hubConnection.stop()
-          .then(() => console.log('Disconnected from SignalR Hub'))
-          .catch(err => console.error('Error disconnecting from SignalR Hub:', err));
+        hubConnection
+          .stop()
+          .then(() => console.log("Disconnected from SignalR Hub"))
+          .catch((err) =>
+            console.error("Error disconnecting from SignalR Hub:", err)
+          );
       }
     };
   }, [hubConnection]);

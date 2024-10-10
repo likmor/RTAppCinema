@@ -136,12 +136,21 @@ namespace RTApp.Hubs
 
             //ConnectionUserNames.AddOrUpdate(connectionId, user, (key, oldValue) => user);
             //
-            _userService.AddOrUpdateNickname(token, user);
+            //_userService.AddOrUpdateNickname(token, user);
             string nickname = _userService.GetNickname(token);
             //
+            var senderInfo = RoomMembers.GetValueOrDefault(roomName)
+                .FirstOrDefault(x => x.Token == token);
+
+            var userInfo = new
+            {
+                name = _userService.GetNickname(senderInfo.Token),
+                image = _userService.GetAvatarId(senderInfo.Token),
+                owner = senderInfo.IsAdmin
+            };
             SendRoomInfo(roomName);
             await Console.Out.WriteLineAsync($"{token} send {text} in {roomName}");
-            await Clients.Group(roomName).SendAsync("ReceiveMessage", roomName, nickname, text);
+            await Clients.Group(roomName).SendAsync("ReceiveMessage", roomName, userInfo, text);
         }
         public async Task SendRoomInfo(string roomName)
         {

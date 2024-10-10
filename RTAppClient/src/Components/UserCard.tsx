@@ -14,6 +14,7 @@ const UserCard: React.FC<Props> = ({ user }) => {
       p={2}
       className="w-full h-[85%] justify-center"
       overflow="hidden"
+      align="center"
     >
       {/* <img
         className="w-[32px] h-[32px] rounded-full"

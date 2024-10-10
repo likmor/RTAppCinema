@@ -21,7 +21,11 @@ interface ModalProps {
   invokeMessage: (message: string, ...arg: string[]) => void;
 }
 
-const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose, invokeMessage }) => {
+const UserNameModal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  invokeMessage,
+}) => {
   const initialRef = React.useRef(null);
   const [username, setUsername] = useState<string>("");
   const [selectedAvatarId, setAvatarId] = useState<string>("");
@@ -32,9 +36,10 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose, invokeMessage })
       const response = await axios.get(SERVER_AVATARS_API);
       const data = await response.data;
       setAvatarIds(data);
-    }
+    };
     fetch();
-  }, [])
+    setUsername(localStorage.getItem("UserName") ?? "")
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,8 +65,9 @@ const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose, invokeMessage })
           <ModalBody pb={4}>
             <FormLabel>Nickname</FormLabel>
             <Input
+              isRequired
               ref={initialRef}
-              placeholder="Max lox"
+              placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
@@ -89,23 +95,27 @@ interface SelectUserIconProps {
   setAvatarId: (id: string) => void;
   avatarIds: string[];
 }
-const SelectUserIcon: React.FC<SelectUserIconProps> = ({ selectedAvatarId, setAvatarId, avatarIds }) => {
+const SelectUserIcon: React.FC<SelectUserIconProps> = ({
+  selectedAvatarId,
+  setAvatarId,
+  avatarIds,
+}) => {
   return (
     <Wrap justify="center">
-      {avatarIds.map((id) =>
+      {avatarIds.map((id) => (
         <WrapItem key={id}>
           <Avatar
-            outline={selectedAvatarId === id ? "5px solid blue" : undefined}
+            p={selectedAvatarId === id ? "0" : "4"}
+            transition="padding .3s ease-in-out"
             shadow="2xl"
-            size="xl"
-            src={SERVER_STATIC + '/avatars/' + id}
+            size="2xl"
+            src={SERVER_STATIC + "/avatars/" + id}
             onClick={() => setAvatarId(id)}
           />
         </WrapItem>
-      )}
-
+      ))}
     </Wrap>
-  )
-}
+  );
+};
 
 export default UserNameModal;
