@@ -67,6 +67,17 @@ public class FilesController : ControllerBase
 
         return Ok(result);
     }
+    [Route("api/Avatars")]
+    [HttpGet]
+    public IActionResult GetAvatars()
+    {
+        string? directoryPath = _configuration["Avatars:Path"];
+        if (directoryPath is null)
+            return StatusCode(500);
+        var result = Directory.GetFiles(directoryPath).Select(file => file.Replace(directoryPath + "\\", ""));
+
+        return Ok(result);
+    }
 
     static Root GetFilesFromFolders(string directoryPath)
     {

@@ -66,7 +66,6 @@ function App() {
   const [roomMessages, setRoomMessages] = useState<RoomMessages[]>([]);
   const [roomUsers, setRoomUsers] = useState<RoomUsers[]>([]);
   const [players, setPlayers] = useState<Players[]>([]);
-  const [avatarIds, setAvatarIds] = useState<string[]>([]);
   const [title, setTitle] = useState<string>("");
 
   const {
@@ -106,10 +105,6 @@ function App() {
         .build();
       connection.on("ReceiveRoomsList", (message: string[]) => {
         setRooms(message);
-      });
-
-      connection.on("ReceiveAvatarIds", (message: string[]) => {
-        setAvatarIds(message);
       });
 
       connection.on("ReceiveError", (message: string) => {
@@ -257,7 +252,6 @@ function App() {
         <UserNameModal
           isOpen={isUserNameModalOpen}
           onClose={onUserNameModalClose}
-          avatarIds={avatarIds}
         />
         <CreateRoomModal
           isOpen={isCreateRoomModalOpen}

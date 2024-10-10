@@ -12,18 +12,28 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
-import { SERVER_STATIC } from "../../config";
+import React, { useEffect, useState } from "react";
+import { SERVER_AVATARS_API, SERVER_STATIC } from "../../config";
+import axios from "axios";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  avatarIds: string[];
 }
 
-const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose, avatarIds }) => {
+const UserNameModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
+  useEffect(() => {
+    const fetch = async () => {
+      const response = await axios.get(SERVER_AVATARS_API);
+      const data = await response.data;
+      console.log(data);
+    }
+    fetch();
+  },[])
+
   const initialRef = React.useRef(null);
   const [username, setUsername] = useState<string>("");
-  const [selectedAvatarId, changeAvatarId] = useState<string>(avatarIds.at(0) ?? "");
+  const [selectedAvatarId, changeAvatarId] = useState<string>("");
+  const [avatarIds, setAvatarIds] = useState<string>([]);
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (username.trim()) {
