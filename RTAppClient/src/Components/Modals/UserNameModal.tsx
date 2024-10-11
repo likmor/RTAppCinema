@@ -46,6 +46,7 @@ const UserNameModal: React.FC<ModalProps> = ({
     if (username.trim()) {
       invokeMessage("UpdateProfile", username, selectedAvatarId);
       localStorage.setItem("UserName", username.trim());
+      localStorage.setItem("AvatarId", selectedAvatarId)
       onClose();
     } else {
     }

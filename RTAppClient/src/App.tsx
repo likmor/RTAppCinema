@@ -10,6 +10,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import {
+  Avatar,
   Box,
   Button,
   Flex,
@@ -27,7 +28,7 @@ import {
 } from "@microsoft/signalr";
 import Room from "./Components/Room";
 import axios from "axios";
-import { SERVER_HUB, SERVER_LOGIN_API } from "./config";
+import { SERVER_HUB, SERVER_LOGIN_API, SERVER_STATIC } from "./config";
 
 interface Room {
   roomName: string;
@@ -111,10 +112,10 @@ function App() {
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Information)
         .build();
-        connection.on("ReceiveRoomsList", (message: Room[]) => {
-          console.log(message);
-          setRooms(message);
-        });
+      connection.on("ReceiveRoomsList", (message: Room[]) => {
+        console.log(message);
+        setRooms(message);
+      });
 
       connection.on("ReceiveError", (message: string) => {
         setRoomExists(true);
@@ -273,7 +274,7 @@ function App() {
           setRoomExists={setRoomExists}
         />
         <div className="flex justify-between items-center">
-          <Link _hover={{}}>
+          <Link _hover={{}} className="h-full">
             <Box onClick={() => goHome()}>
               <Header></Header>
             </Box>
@@ -297,7 +298,7 @@ function App() {
 
           <Box onClick={onUserNameModalOpen} ml="auto" className="">
             <Link>
-              <Heading
+            <Heading
                 p={5}
                 bg="gray.700"
                 boxShadow="dark-lg"
@@ -305,7 +306,18 @@ function App() {
                 color="rgb(255,255,255, 0.95)"
               >
                 {localStorage.getItem("UserName")}
+                <Avatar
+                ml="2"
+                  shadow="2xl"
+ 
+                  src={
+                    SERVER_STATIC +
+                    "/avatars/" +
+                    localStorage.getItem("AvatarId")
+                  }
+                />
               </Heading>
+              
             </Link>
           </Box>
         </div>
