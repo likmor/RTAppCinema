@@ -38,7 +38,8 @@ const RoomList: React.FC<{
 };
 
 const RoomCard: React.FC<{ roomName: string; roomUserAvatarIds: string[] }> = ({
-  roomName, roomUserAvatarIds
+  roomName,
+  roomUserAvatarIds,
 }) => {
   const navigate = useNavigate();
   return (
@@ -49,16 +50,13 @@ const RoomCard: React.FC<{ roomName: string; roomUserAvatarIds: string[] }> = ({
       boxShadow="lg"
     >
       <CardHeader>
-        <Heading
-          className="text-white"
-          fontSize={"xl"}
-        >
+        <Heading className="text-white" fontSize={"xl"}>
           {roomName}
         </Heading>
         <AvatarGroup mt="4" size="md" max={3}>
-          {roomUserAvatarIds?.map((id, index) =>
+          {roomUserAvatarIds?.map((id, index) => (
             <Avatar key={index} src={SERVER_STATIC + "/avatars/" + id} />
-          )}
+          ))}
         </AvatarGroup>
       </CardHeader>
       <CardBody className="flex justify-center items-end">

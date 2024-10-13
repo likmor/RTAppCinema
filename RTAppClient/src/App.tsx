@@ -321,7 +321,7 @@ function App() {
             </Link>
           </Box>
         </div>
-        <Flex className="overflow-hidden grow">
+        <Flex className="overflow-auto grow">
           <Routes>
             <Route
               path="/home"
