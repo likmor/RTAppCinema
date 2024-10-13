@@ -10,6 +10,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import {
+  Avatar,
   Box,
   Button,
   Flex,
@@ -27,7 +28,12 @@ import {
 } from "@microsoft/signalr";
 import Room from "./Components/Room";
 import axios from "axios";
-import { SERVER_HUB, SERVER_LOGIN_API } from "./config";
+import { SERVER_HUB, SERVER_LOGIN_API, SERVER_STATIC } from "./config";
+
+interface Room {
+  roomName: string;
+  roomMembers: string[];
+}
 
 interface RoomMessages {
   roomName: string;
@@ -35,7 +41,7 @@ interface RoomMessages {
 }
 
 interface MessageProp {
-  user: string;
+  user: User;
   text: string;
 }
 
@@ -61,7 +67,7 @@ interface Players {
 
 function App() {
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<string[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [roomExists, setRoomExists] = useState<boolean>(false);
   const [roomMessages, setRoomMessages] = useState<RoomMessages[]>([]);
   const [roomUsers, setRoomUsers] = useState<RoomUsers[]>([]);
@@ -91,16 +97,14 @@ function App() {
   let path = useLocation().pathname;
 
   useEffect(() => {
-    const getData = async () => {
-      if (token == null) {
-        const response = await axios.post(
-          SERVER_LOGIN_API
-        );
-        await localStorage.setItem("jwt", response.data.token);
-      }
-    };
-
     const startSignalRConnection = async (token: string) => {
+      if (
+        hubConnection &&
+        hubConnection.state === HubConnectionState.Connected
+      ) {
+        console.log("Already connected to the hub.");
+        return;
+      }
       const connection = new HubConnectionBuilder()
         .withUrl(SERVER_HUB, {
           accessTokenFactory: () => token ?? "",
@@ -108,103 +112,103 @@ function App() {
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Information)
         .build();
+      connection.on("ReceiveRoomsList", (message: Room[]) => {
+        console.log(message);
+        setRooms(message);
+      });
 
-      connection
-        .start()
-        .then(() => {
-          console.log("Connected to SignalR Hub");
+      connection.on("ReceiveError", (message: string) => {
+        setRoomExists(true);
 
-          connection
-            .invoke("JoinMainRoom", "user")
-            .then(() => console.log("Joined main room successfully"))
-            .catch((err) => console.error("Error joining room:", err));
+        console.log(message);
+      });
+      connection.on("ReceiveSuccess", () => {
+        onCreateRoomModalClose();
+      });
+      connection.on(
+        "ReceiveMessage",
+        (roomName: string, user: User, text: string) => {
+          addMessageToRoom(roomName, { user, text });
+        }
+      );
+      connection.on("ReceiveFileList", (files: any) => {
+        console.log(files);
+      });
 
-          connection.on("ReceiveRoomsList", (message: string[]) => {
-            setRooms(message);
-          });
+      connection.on(
+        "ReceiveRoomInfo",
+        (
+          roomName: string,
+          users: { name: string; image: string; owner: boolean }[]
+        ) => {
+          setRoomUsers((prevState) => {
+            const roomIndex = prevState.findIndex(
+              (room) => room.roomName === roomName
+            );
 
-          connection.on("ReceiveError", (message: string) => {
-            setRoomExists(true);
-
-            console.log(message);
-          });
-          connection.on("ReceiveSuccess", () => {
-            onCreateRoomModalClose();
-          });
-          connection.on(
-            "ReceiveMessage",
-            (roomName: string, user: string, text: string) => {
-              addMessageToRoom(roomName, { user, text });
+            if (roomIndex > -1) {
+              const updatedRooms = [...prevState];
+              updatedRooms[roomIndex] = { roomName, users };
+              return updatedRooms;
+            } else {
+              return [...prevState, { roomName, users }];
             }
-          );
-          connection.on("ReceiveFileList", (files: any) => {
-            console.log(files);
           });
+        }
+      );
+      connection.on(
+        "ReceivePlayerInfo",
+        (roomName: string, player: PlayerInfo) => {
+          setPlayers((prevState) => {
+            const roomIndex = prevState.findIndex(
+              (room) => room.roomName === roomName
+            );
 
-          connection.on(
-            "ReceiveRoomInfo",
-            (
-              roomName: string,
-              users: { name: string; image: string; owner: boolean }[]
-            ) => {
-              setRoomUsers((prevState) => {
-                const roomIndex = prevState.findIndex(
-                  (room) => room.roomName === roomName
-                );
-
-                if (roomIndex > -1) {
-                  const updatedRooms = [...prevState];
-                  updatedRooms[roomIndex] = { roomName, users };
-                  return updatedRooms;
-                } else {
-                  return [...prevState, { roomName, users }];
-                }
-              });
+            if (roomIndex > -1) {
+              const updatedRooms = [...prevState];
+              updatedRooms[roomIndex] = { roomName, playerInfo: player };
+              return updatedRooms;
+            } else {
+              return [...prevState, { roomName, playerInfo: player }];
             }
-          );
-          connection.on(
-            "ReceivePlayerInfo",
-            (roomName: string, player: PlayerInfo) => {
-              setPlayers((prevState) => {
-                const roomIndex = prevState.findIndex(
-                  (room) => room.roomName === roomName
-                );
+          });
+        }
+      );
 
-                if (roomIndex > -1) {
-                  const updatedRooms = [...prevState];
-                  updatedRooms[roomIndex] = { roomName, playerInfo: player };
-                  return updatedRooms;
-                } else {
-                  return [...prevState, { roomName, playerInfo: player }];
-                }
-              });
-            }
-          );
-        })
-        .catch((err) => console.error("Error connecting to SignalR Hub:", err));
-      setHubConnection(connection);
+      try {
+        await connection.start();
+        console.log("Connected to SignalR Hub");
+        setHubConnection(connection);
 
-      return () => {
-        connection
+        await connection.invoke("JoinMainRoom", "user");
+        console.log("Joined main room successfully");
+      } catch (err) {
+        console.error("Error connecting to SignalR Hub:", err);
+      }
+    };
+
+    const fetchTokenAndConnect = async () => {
+      let token = localStorage.getItem("jwt");
+      if (!token) {
+        const response = await axios.post(SERVER_LOGIN_API);
+        token = response.data.token;
+        localStorage.setItem("jwt", token ?? "");
+      }
+      await startSignalRConnection(token ?? "");
+    };
+
+    fetchTokenAndConnect();
+    return () => {
+      if (hubConnection) {
+        hubConnection
           .stop()
           .then(() => console.log("Disconnected from SignalR Hub"))
           .catch((err) =>
             console.error("Error disconnecting from SignalR Hub:", err)
           );
-      };
+      }
     };
-    const token = localStorage.getItem("jwt");
-    if (token) {
-      startSignalRConnection(token);
-    } else {
-      getData().then(() => {
-        const newToken = localStorage.getItem("jwt");
-        if (newToken) {
-          startSignalRConnection(newToken);
-        }
-      });
-    }
-  }, []);
+  }, [hubConnection]);
 
   const addMessageToRoom = (roomName: string, newMessage: MessageProp) => {
     setRoomMessages((prevRoomMessages) => {
@@ -260,6 +264,7 @@ function App() {
         <UserNameModal
           isOpen={isUserNameModalOpen}
           onClose={onUserNameModalClose}
+          invokeMessage={InvokeMessage}
         />
         <CreateRoomModal
           isOpen={isCreateRoomModalOpen}
@@ -269,7 +274,7 @@ function App() {
           setRoomExists={setRoomExists}
         />
         <div className="flex justify-between items-center">
-          <Link _hover={{}}>
+          <Link _hover={{}} className="h-full">
             <Box onClick={() => goHome()}>
               <Header></Header>
             </Box>
@@ -293,7 +298,7 @@ function App() {
 
           <Box onClick={onUserNameModalOpen} ml="auto" className="">
             <Link>
-              <Heading
+            <Heading
                 p={5}
                 bg="gray.700"
                 boxShadow="dark-lg"
@@ -301,11 +306,22 @@ function App() {
                 color="rgb(255,255,255, 0.95)"
               >
                 {localStorage.getItem("UserName")}
+                <Avatar
+                ml="2"
+                  shadow="2xl"
+ 
+                  src={
+                    SERVER_STATIC +
+                    "/avatars/" +
+                    localStorage.getItem("AvatarId")
+                  }
+                />
               </Heading>
+              
             </Link>
           </Box>
         </div>
-        <Flex className="overflow-hidden grow">
+        <Flex className="overflow-auto grow">
           <Routes>
             <Route
               path="/home"

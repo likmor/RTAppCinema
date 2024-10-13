@@ -1,4 +1,6 @@
 import {
+  Avatar,
+  AvatarGroup,
   Button,
   Card,
   CardBody,
@@ -8,11 +10,13 @@ import {
 } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { Room } from "./types/types.ts";
+import { SERVER_STATIC } from "../config.ts";
 const RoomList: React.FC<{
-  rooms: string[];
+  rooms: Room[];
   changeTitle: (title: string) => void;
 }> = ({ rooms, changeTitle }) => {
+  console.log(rooms);
   useEffect(() => {
     changeTitle("");
   }, []);
@@ -20,8 +24,12 @@ const RoomList: React.FC<{
     <>
       <Flex className="gap-10 mx-10 my-5 flex-wrap justify-center">
         {rooms?.map((item, index) =>
-          item === "main" ? null : (
-            <RoomCard roomName={item} key={index}></RoomCard>
+          item.roomName === "main" ? null : (
+            <RoomCard
+              roomName={item.roomName}
+              roomUserAvatarIds={item.roomMembers}
+              key={index}
+            ></RoomCard>
           )
         )}
       </Flex>
@@ -29,7 +37,10 @@ const RoomList: React.FC<{
   );
 };
 
-const RoomCard: React.FC<{ roomName: string }> = ({ roomName }) => {
+const RoomCard: React.FC<{ roomName: string; roomUserAvatarIds: string[] }> = ({
+  roomName,
+  roomUserAvatarIds,
+}) => {
   const navigate = useNavigate();
   return (
     <Card
@@ -39,15 +50,14 @@ const RoomCard: React.FC<{ roomName: string }> = ({ roomName }) => {
       boxShadow="lg"
     >
       <CardHeader>
-        <Heading
-          className="text-white"
-          fontSize={"xl"}
-          h="90px"
-          maxH="90px"
-          overflow="auto"
-        >
+        <Heading className="text-white" fontSize={"xl"}>
           {roomName}
         </Heading>
+        <AvatarGroup mt="4" size="md" max={3}>
+          {roomUserAvatarIds?.map((id, index) => (
+            <Avatar key={index} src={SERVER_STATIC + "/avatars/" + id} />
+          ))}
+        </AvatarGroup>
       </CardHeader>
       <CardBody className="flex justify-center items-end">
         <Button

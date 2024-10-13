@@ -1,6 +1,11 @@
 export interface Message {
-  user: string;
+  user: User;
   text: string;
+}
+
+export interface Room {
+  roomName: string;
+  roomMembers: string[];
 }
 
 export interface RoomMessages {
