@@ -8,7 +8,8 @@ import { SERVER_URL } from "../config";
 import { Players, RoomMessages, RoomUsers } from "./types/types";
 
 const videoJsOptions = {
-  playbackRates: [0.5, 1, 1.25, 1.5, 2],
+  //  playbackRates: [0.5, 1, 1.25, 1.5, 2],
+  
   controls: true,
   responsive: true,
   fill: true,

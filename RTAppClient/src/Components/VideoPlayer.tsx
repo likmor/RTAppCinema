@@ -13,7 +13,11 @@ interface Props {
   onReady: (player: any) => void;
 }
 
-export const VideoPlayer: React.FC<Props> = ({ sendPlayerInfo, options, onReady }) => {
+export const VideoPlayer: React.FC<Props> = ({
+  sendPlayerInfo,
+  options,
+  onReady,
+}) => {
   const videoRef = React.useRef<any>(null);
   const playerRef = React.useRef<any>(null);
   const subtitlesRef = React.useRef<any>(null);
@@ -28,10 +32,24 @@ export const VideoPlayer: React.FC<Props> = ({ sendPlayerInfo, options, onReady 
 
       videoElement.classList.add("vjs-big-play-centered");
       videoRef.current.appendChild(videoElement);
-
       const player = (playerRef.current = videojs(videoElement, options, () => {
-        videojs.log("player is ready");
+        let volume = Number.parseFloat(
+          localStorage.getItem("video-volume") ?? "0.5"
+        );
+        player.volume(volume);
 
+        player.on("volumechange", () => {
+          let newVolume = player.volume();
+          if (player.muted()) {
+            localStorage.setItem("video-volume", "0");
+          } else {
+            if (newVolume !== undefined) {
+              localStorage.setItem("video-volume", newVolume.toString());
+            }
+          }
+        });
+
+        videojs.log("player is ready");
         onReady && onReady(player);
       }));
 
@@ -49,7 +67,11 @@ export const VideoPlayer: React.FC<Props> = ({ sendPlayerInfo, options, onReady 
   React.useEffect(() => {
     const player = playerRef.current;
     const syncVideo = () => {
-      sendPlayerInfo(player.paused(), player.currentTime(), player.currentSource().src);
+      sendPlayerInfo(
+        player.paused(),
+        player.currentTime(),
+        player.currentSource().src
+      );
     };
 
     intervalRef.current = setInterval(syncVideo, 700);
