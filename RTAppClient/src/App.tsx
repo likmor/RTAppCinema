@@ -298,7 +298,7 @@ function App() {
 
           <Box onClick={onUserNameModalOpen} ml="auto" className="">
             <Link>
-            <Heading
+              <Heading
                 p={5}
                 bg="gray.700"
                 boxShadow="dark-lg"
@@ -307,9 +307,8 @@ function App() {
               >
                 {localStorage.getItem("UserName")}
                 <Avatar
-                ml="2"
+                  ml="2"
                   shadow="2xl"
- 
                   src={
                     SERVER_STATIC +
                     "/avatars/" +
@@ -317,7 +316,6 @@ function App() {
                   }
                 />
               </Heading>
-              
             </Link>
           </Box>
         </div>
@@ -341,7 +339,7 @@ function App() {
                 ) : null
               }
             />
-            <Route path="/" element={<Navigate to="/home" />} />
+            <Route path="*" element={<Navigate to="/home" />} />
           </Routes>
         </Flex>
       </Flex>

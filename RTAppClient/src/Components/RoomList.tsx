@@ -16,7 +16,6 @@ const RoomList: React.FC<{
   rooms: Room[];
   changeTitle: (title: string) => void;
 }> = ({ rooms, changeTitle }) => {
-  console.log(rooms);
   useEffect(() => {
     changeTitle("");
   }, []);
