@@ -113,7 +113,6 @@ function App() {
         .configureLogging(LogLevel.Information)
         .build();
       connection.on("ReceiveRoomsList", (message: Room[]) => {
-        console.log(message);
         setRooms(message);
       });
 
@@ -145,10 +144,36 @@ function App() {
             const roomIndex = prevState.findIndex(
               (room) => room.roomName === roomName
             );
-
             if (roomIndex > -1) {
               const updatedRooms = [...prevState];
               updatedRooms[roomIndex] = { roomName, users };
+
+              const currentUsers = updatedRooms[roomIndex].users;
+              const previousUsers = prevState[roomIndex].users;
+
+              const currentUsersSet = new Set(
+                currentUsers.map((user) => user.name)
+              );
+              const previousUsersSet = new Set(
+                previousUsers.map((user) => user.name)
+              );
+
+              const newUsers = currentUsers.filter(
+                (user) => !previousUsersSet.has(user.name)
+              );
+
+              const removedUsers = previousUsers.filter(
+                (user) => !currentUsersSet.has(user.name)
+              );
+
+              if (newUsers.length > 0) {
+                console.log("New users connected:", newUsers);
+              }
+
+              if (removedUsers.length > 0) {
+                console.log("Users disconnected:", removedUsers);
+              }
+
               return updatedRooms;
             } else {
               return [...prevState, { roomName, users }];
