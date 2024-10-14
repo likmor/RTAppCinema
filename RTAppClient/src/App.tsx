@@ -13,9 +13,11 @@ import {
   Avatar,
   Box,
   Button,
+  Center,
   Flex,
   Heading,
   Link,
+  Spinner,
   useDisclosure,
 } from "@chakra-ui/react";
 import UserNameModal from "./Components/Modals/UserNameModal";
@@ -344,16 +346,18 @@ function App() {
             </Link>
           </Box>
         </div>
-        <Flex className="overflow-auto grow">
-          <Routes>
-            <Route
-              path="/home"
-              element={<RoomList rooms={rooms} changeTitle={changeTitle} />}
-            />
-            <Route
-              path="/room/:roomName"
-              element={
-                hubConnection?.state === HubConnectionState.Connected ? (
+        {hubConnection?.state !== HubConnectionState.Connected ? (
+          <Spinner alignSelf="center" size="xl"></Spinner>
+        ) : (
+          <Flex className="overflow-auto grow">
+            <Routes>
+              <Route
+                path="/home"
+                element={<RoomList rooms={rooms} changeTitle={changeTitle} />}
+              />
+              <Route
+                path="/room/:roomName"
+                element={
                   <Room
                     changeTitle={changeTitle}
                     invoke={InvokeMessage}
@@ -361,12 +365,12 @@ function App() {
                     users={roomUsers}
                     players={players}
                   />
-                ) : null
-              }
-            />
-            <Route path="*" element={<Navigate to="/home" />} />
-          </Routes>
-        </Flex>
+                }
+              />
+              <Route path="*" element={<Navigate to="/home" />} />
+            </Routes>
+          </Flex>
+        )}
       </Flex>
     </>
   );
