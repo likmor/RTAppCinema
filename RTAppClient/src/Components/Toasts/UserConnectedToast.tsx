@@ -1,5 +1,4 @@
-import { Avatar, Box, Button, ChakraComponent, Flex, ToastId, useToast } from "@chakra-ui/react";
-import UserCard from "../UserCard";
+import { Avatar, Flex, ToastId, useToast } from "@chakra-ui/react";
 import { User } from "../types/types";
 import { SERVER_STATIC } from "../../config";
 import { useRef } from "react";
@@ -8,12 +7,14 @@ export const UserConnectedToast = () => {
     const toast = useToast();
     const toastIdRef = useRef<ToastId>()
 
+    const sound = new Audio(SERVER_STATIC + "/audio.mp3");
     function closeAll() {
-      if (toastIdRef.current) {
-        toast.closeAll();
-      }
+        if (toastIdRef.current) {
+            toast.closeAll();
+        }
     }
     const addToast = (user: User) => {
+        sound.play();
         toastIdRef.current = toast({
             position: "top-right",
             isClosable: true,
