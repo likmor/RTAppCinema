@@ -3,13 +3,13 @@ import { User } from "../types/types";
 import { SERVER_STATIC } from "../../config";
 import { useEffect, useRef } from "react";
 
-export const UserConnectedToast = () => {
+export const UserDisonnectedToast = () => {
     const toast = useToast();
     const toastIdRef = useRef<ToastId>()
 
     const sound = new Audio();
     useEffect(() => {
-        sound.src = SERVER_STATIC + "/connected.mp3"
+        sound.src = SERVER_STATIC + "/disconnected.mp3"
     },[])
 
     function closeAll() {
@@ -17,7 +17,7 @@ export const UserConnectedToast = () => {
             toast.closeAll();
         }
     }
-    const addToastConnected = (user: User) => {
+    const addToastDisconnected = (user: User) => {
         sound.play();
         toastIdRef.current = toast({
             position: "top-right",
@@ -28,8 +28,8 @@ export const UserConnectedToast = () => {
             },
             render: () =>
                 <Flex onClick={closeAll} color='white' bg='gray.700' borderRadius="md" p="2" shadow="2xl" alignItems="center" direction="column">
-                    <span className="text-lg font-bold">User joined:</span>
-                    <Flex alignItems="center">
+                    <span className="text-lg font-bold">User left:</span>
+                    <Flex  alignItems="center">
                         <Avatar
                             shadow="2xl"
                             size="md"
@@ -44,5 +44,5 @@ export const UserConnectedToast = () => {
         })
     }
 
-    return { addToastConnected };
+    return { addToastDisconnected };
 }
