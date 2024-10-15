@@ -24,13 +24,14 @@ export const UserDisonnectedToast = () => {
             isClosable: true,
             duration: 6500,
             containerStyle: {
-                minWidth: '300px'
+                minWidth: '300px',
             },
             render: () =>
-                <Flex onClick={closeAll} color='white' bg='gray.700' borderRadius="md" p="2" shadow="2xl" alignItems="center" direction="column">
+                <Flex cursor="pointer" onClick={closeAll} color='white' bg='gray.700' borderRadius="md" p="2" shadow="2xl" alignItems="center" direction="column">
                     <span className="text-lg font-bold">User left:</span>
-                    <Flex  alignItems="center">
+                    <Flex alignItems="center">
                         <Avatar
+                        className="grayscale"
                             shadow="2xl"
                             size="md"
                             src={SERVER_STATIC + '/avatars/' + user.image}
