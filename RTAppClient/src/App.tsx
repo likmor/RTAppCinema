@@ -13,7 +13,6 @@ import {
   Avatar,
   Box,
   Button,
-  Center,
   Flex,
   Heading,
   Link,
@@ -31,6 +30,7 @@ import {
 import Room from "./Components/Room";
 import axios from "axios";
 import { SERVER_HUB, SERVER_LOGIN_API, SERVER_STATIC } from "./config";
+import { UserConnectedToast } from "./Components/Toasts/UserConnectedToast";
 
 interface Room {
   roomName: string;
@@ -75,6 +75,7 @@ function App() {
   const [roomUsers, setRoomUsers] = useState<RoomUsers[]>([]);
   const [players, setPlayers] = useState<Players[]>([]);
   const [title, setTitle] = useState<string>("");
+  const { addToast } = UserConnectedToast();
 
   const {
     isOpen: isUserNameModalOpen,
@@ -169,7 +170,8 @@ function App() {
               );
 
               if (newUsers.length > 0) {
-                console.log("New users connected:", newUsers);
+                console.log("New user connected:", newUsers[0]);
+                addToast(newUsers[0]);
               }
 
               if (removedUsers.length > 0) {
