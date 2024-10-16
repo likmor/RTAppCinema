@@ -22,7 +22,7 @@ export const UserConnectedToast = () => {
         toastIdRef.current = toast({
             position: "top-right",
             isClosable: true,
-            duration: 65000,
+            duration: 6500,
             containerStyle: {
                 minWidth: '300px',
             },

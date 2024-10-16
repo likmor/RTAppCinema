@@ -8,6 +8,7 @@ import {
   Routes,
   useLocation,
   useNavigate,
+  useParams,
 } from "react-router-dom";
 import {
   Avatar,
@@ -78,6 +79,8 @@ function App() {
   const [title, setTitle] = useState<string>("");
   const { addToastConnected } = UserConnectedToast();
   const { addToastDisconnected } = UserDisonnectedToast();
+  const [roomName, setRoomName] = useState<string | null>();
+
 
   const {
     isOpen: isUserNameModalOpen,
@@ -177,7 +180,7 @@ function App() {
 
               if (removedUsers.length > 0 && roomName != "main") {
                 addToastDisconnected(removedUsers[0]);
-                
+
               }
 
               return updatedRooms;
@@ -283,6 +286,9 @@ function App() {
     setTitle("");
     path === "/home" ? null : navigate("/home");
   };
+  const leaveLastRoom = () => {
+    InvokeMessage("LeaveRoom", roomName ?? "");
+  }
 
   const changeTitle = (newTitle: string) => {
     document.title = newTitle;
@@ -357,12 +363,13 @@ function App() {
             <Routes>
               <Route
                 path="/home"
-                element={<RoomList rooms={rooms} changeTitle={changeTitle} />}
+                element={<RoomList leaveLastRoom={leaveLastRoom} rooms={rooms} changeTitle={changeTitle} />}
               />
               <Route
                 path="/room/:roomName"
                 element={
                   <Room
+                    setRoomName={setRoomName}
                     changeTitle={changeTitle}
                     invoke={InvokeMessage}
                     messages={roomMessages}

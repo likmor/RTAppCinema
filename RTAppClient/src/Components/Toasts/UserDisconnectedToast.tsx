@@ -10,7 +10,7 @@ export const UserDisonnectedToast = () => {
     const sound = new Audio();
     useEffect(() => {
         sound.src = SERVER_STATIC + "/disconnected.mp3"
-    },[])
+    }, [])
 
     function closeAll() {
         if (toastIdRef.current) {
@@ -31,17 +31,14 @@ export const UserDisonnectedToast = () => {
                     <span className="text-lg font-bold">User left:</span>
                     <Flex alignItems="center">
                         <Avatar
-                        className="grayscale"
+                            className="grayscale"
                             shadow="2xl"
                             size="md"
                             src={SERVER_STATIC + '/avatars/' + user.image}
                         />
                         <span className="text-lg font-bold pl-2">{user.name}</span>
-
                     </Flex >
                 </Flex>
-
-
         })
     }
 

@@ -70,7 +70,9 @@ namespace RTApp.Hubs
                 room.Add(new RoomMember { Token = token, IsAdmin = false });
             }
 
-            var roomUsers = RoomMembers.Select(x => new { roomName = x.Key, 
+            var roomUsers = RoomMembers.Select(x => new
+            {
+                roomName = x.Key,
                 roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
             });
             await Clients.Caller.SendAsync("ReceiveRoomsList", roomUsers);
@@ -100,7 +102,8 @@ namespace RTApp.Hubs
             await Clients.Caller.SendAsync("ReceiveSuccess", $"Room {roomName} created with token {token}!");
 
 
-            var roomUsers = RoomMembers.Select(x => new {
+            var roomUsers = RoomMembers.Select(x => new
+            {
                 roomName = x.Key,
                 roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
             });
@@ -127,12 +130,34 @@ namespace RTApp.Hubs
             SendRoomInfo(roomName);
             Console.WriteLine($"Token {token} joined room {roomName}");
 
-            var roomUsers = RoomMembers.Select(x => new {
+            var roomUsers = RoomMembers.Select(x => new
+            {
                 roomName = x.Key,
                 roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
             });
             await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
             //ReceiveFileList();
+        }
+        public async Task LeaveRoom(string roomName)
+        {
+            var connectionId = Context.ConnectionId;
+            await Groups.RemoveFromGroupAsync(connectionId, roomName);
+            await Console.Out.WriteLineAsync(connectionId);
+
+            string token = _userService.GetTokenFromConnectionId(connectionId);
+            if (token == null)
+            {
+                return;
+            }
+            RoomMembers[roomName].RemoveWhere(x => x.Token == token);
+            await SendRoomInfo(roomName);
+
+            var roomUsers = RoomMembers.Select(x => new
+            {
+                roomName = x.Key,
+                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+            });
+            await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
         }
         //public async Task ReceiveFileList()
         //{
@@ -223,7 +248,8 @@ namespace RTApp.Hubs
                 SendRoomInfo(room);
             }
 
-            var roomUsers = RoomMembers.Select(x => new {
+            var roomUsers = RoomMembers.Select(x => new
+            {
                 roomName = x.Key,
                 roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
             });
@@ -258,7 +284,8 @@ namespace RTApp.Hubs
                 }
             }
 
-            var roomUsers = RoomMembers.Select(x => new {
+            var roomUsers = RoomMembers.Select(x => new
+            {
                 roomName = x.Key,
                 roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
             });

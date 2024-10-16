@@ -22,6 +22,7 @@ const videoJsOptions = {
 };
 
 interface Props {
+  setRoomName: (roomName: string) => void;
   changeTitle: (newTitle: string) => void;
   invoke: (message: string, ...args: any[]) => void;
   messages: RoomMessages[];
@@ -30,6 +31,7 @@ interface Props {
 }
 
 const Room: React.FC<Props> = ({
+  setRoomName,
   changeTitle,
   invoke,
   messages,
@@ -43,6 +45,7 @@ const Room: React.FC<Props> = ({
   useEffect(() => {
     if (roomName) {
       const userName = localStorage.getItem("UserName") ?? "";
+      setRoomName(roomName);
       invoke("JoinRoom", userName, roomName);
     }
   }, []);

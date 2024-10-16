@@ -15,8 +15,10 @@ import { SERVER_STATIC } from "../config.ts";
 const RoomList: React.FC<{
   rooms: Room[];
   changeTitle: (title: string) => void;
-}> = ({ rooms, changeTitle }) => {
+  leaveLastRoom: () => void;
+}> = ({ rooms, changeTitle, leaveLastRoom }) => {
   useEffect(() => {
+    leaveLastRoom();
     changeTitle("");
   }, []);
   return (
