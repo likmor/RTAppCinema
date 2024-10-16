@@ -287,7 +287,7 @@ function App() {
     path === "/home" ? null : navigate("/home");
   };
   const leaveLastRoom = () => {
-    InvokeMessage("LeaveRoom", roomName ?? "");
+    roomName && InvokeMessage("LeaveRoom", roomName);
   }
 
   const changeTitle = (newTitle: string) => {

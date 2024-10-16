@@ -10,6 +10,7 @@ public class RoomMember
 {
     public string Token { get; set; }
     public bool IsAdmin { get; set; }
+    public bool Online { get; set; }
 }
 public class PlayerInfo
 {
@@ -123,6 +124,10 @@ namespace RTApp.Hubs
             {
                 room.Add(new RoomMember { Token = token, IsAdmin = false });
             }
+            else if (room.Any(x => x.IsAdmin == true))
+            {
+                room.FirstOrDefault(x => x.IsAdmin).Online = true;
+            }
             //ConnectionUserNames.AddOrUpdate(connectionId, user, (key, oldValue) => user);
             //
             _userService.AddOrUpdateNickname(token, user);
@@ -142,14 +147,14 @@ namespace RTApp.Hubs
         {
             var connectionId = Context.ConnectionId;
             await Groups.RemoveFromGroupAsync(connectionId, roomName);
-            await Console.Out.WriteLineAsync(connectionId);
 
             string token = _userService.GetTokenFromConnectionId(connectionId);
             if (token == null)
             {
                 return;
             }
-            RoomMembers[roomName].RemoveWhere(x => x.Token == token);
+            RoomMembers[roomName].FirstOrDefault(x => x.Token == token && x.IsAdmin).Online = false;
+            RoomMembers[roomName].RemoveWhere(x => x.Token == token && !x.IsAdmin);
             await SendRoomInfo(roomName);
 
             var roomUsers = RoomMembers.Select(x => new
@@ -199,7 +204,8 @@ namespace RTApp.Hubs
                 {
                     name = _userService.GetNickname(item.Token),
                     image = _userService.GetAvatarId(item.Token),
-                    owner = item.IsAdmin
+                    owner = item.IsAdmin,
+                    online = item.Online,
                 });
             await Clients.Group(roomName).SendAsync("ReceiveRoomInfo", roomName, users);
         }
@@ -274,11 +280,19 @@ namespace RTApp.Hubs
                 var members = roomEntry.Value;
 
                 var memberToRemove = members.FirstOrDefault(m => m.Token == token && !m.IsAdmin);
+                var adminToRemove = members.FirstOrDefault(m => m.Token == token && m.IsAdmin);
+
+
 
                 if (memberToRemove != null)
                 {
                     members.Remove(memberToRemove);
+                    SendRoomInfo(roomName);
 
+                }
+                if (adminToRemove != null)
+                {
+                    adminToRemove.Online = false;
                     SendRoomInfo(roomName);
 
                 }
