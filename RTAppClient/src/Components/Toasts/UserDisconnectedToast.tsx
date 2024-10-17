@@ -31,7 +31,7 @@ export const UserDisonnectedToast = () => {
                     <span className="text-lg font-bold">User left:</span>
                     <Flex alignItems="center">
                         <Avatar
-                            className="grayscale"
+                            filter="grayscale(1)"
                             shadow="2xl"
                             size="md"
                             src={SERVER_STATIC + '/avatars/' + user.image}

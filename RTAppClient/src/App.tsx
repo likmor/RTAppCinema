@@ -33,11 +33,7 @@ import axios from "axios";
 import { SERVER_HUB, SERVER_LOGIN_API, SERVER_STATIC } from "./config";
 import { UserConnectedToast } from "./Components/Toasts/UserConnectedToast";
 import { UserDisonnectedToast } from "./Components/Toasts/UserDisconnectedToast";
-
-interface Room {
-  roomName: string;
-  roomMembers: string[];
-}
+import { User, Room as IRoom } from "./Components/types/types";
 
 interface RoomMessages {
   roomName: string;
@@ -49,21 +45,17 @@ interface MessageProp {
   text: string;
 }
 
-interface User {
-  name: string;
-  image: string;
-  owner: boolean;
-}
-
 interface RoomUsers {
   roomName: string;
   users: User[];
 }
+
 interface PlayerInfo {
   paused: boolean;
   time: number;
   name: string;
 }
+
 interface Players {
   roomName: string;
   playerInfo: PlayerInfo;
@@ -71,7 +63,7 @@ interface Players {
 
 function App() {
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [rooms, setRooms] = useState<IRoom[]>([]);
   const [roomExists, setRoomExists] = useState<boolean>(false);
   const [roomMessages, setRoomMessages] = useState<RoomMessages[]>([]);
   const [roomUsers, setRoomUsers] = useState<RoomUsers[]>([]);
@@ -120,7 +112,8 @@ function App() {
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Information)
         .build();
-      connection.on("ReceiveRoomsList", (message: Room[]) => {
+      connection.on("ReceiveRoomsList", (message: IRoom[]) => {
+        console.log(message)
         setRooms(message);
       });
 
@@ -146,7 +139,7 @@ function App() {
         "ReceiveRoomInfo",
         (
           roomName: string,
-          users: { name: string; image: string; owner: boolean }[]
+          users: User[]
         ) => {
           setRoomUsers((prevState) => {
             const roomIndex = prevState.findIndex(

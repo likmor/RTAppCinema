@@ -10,8 +10,9 @@ import {
 } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Room } from "./types/types.ts";
+import { Room, UserPreview } from "./types/types.ts";
 import { SERVER_STATIC } from "../config.ts";
+import { CgLayoutGrid } from "react-icons/cg";
 const RoomList: React.FC<{
   rooms: Room[];
   changeTitle: (title: string) => void;
@@ -28,7 +29,7 @@ const RoomList: React.FC<{
           item.roomName === "main" ? null : (
             <RoomCard
               roomName={item.roomName}
-              roomUserAvatarIds={item.roomMembers}
+              UserPreviews={item.users}
               key={index}
             ></RoomCard>
           )
@@ -38,10 +39,11 @@ const RoomList: React.FC<{
   );
 };
 
-const RoomCard: React.FC<{ roomName: string; roomUserAvatarIds: string[] }> = ({
+const RoomCard: React.FC<{ roomName: string; UserPreviews: UserPreview[] }> = ({
   roomName,
-  roomUserAvatarIds,
+  UserPreviews,
 }) => {
+  console.log(UserPreviews)
   const navigate = useNavigate();
   return (
     <Card
@@ -55,8 +57,8 @@ const RoomCard: React.FC<{ roomName: string; roomUserAvatarIds: string[] }> = ({
           {roomName}
         </Heading>
         <AvatarGroup mt="4" size="md" max={3}>
-          {roomUserAvatarIds?.map((id, index) => (
-            <Avatar key={index} src={SERVER_STATIC + "/avatars/" + id} />
+          {UserPreviews?.map((id, index) => (
+            <Avatar filter={!id.online ? "grayscale(1)" : "none"} key={index} src={SERVER_STATIC + "/avatars/" + id.avatar} />
           ))}
         </AvatarGroup>
       </CardHeader>

@@ -68,13 +68,13 @@ namespace RTApp.Hubs
             var room = RoomMembers.GetOrAdd("main", new HashSet<RoomMember>());
             if (!room.Any(x => x.Token == token))
             {
-                room.Add(new RoomMember { Token = token, IsAdmin = false });
+                room.Add(new RoomMember { Token = token, IsAdmin = false, Online = true });
             }
 
             var roomUsers = RoomMembers.Select(x => new
             {
                 roomName = x.Key,
-                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+                Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
             });
             await Clients.Caller.SendAsync("ReceiveRoomsList", roomUsers);
             Console.WriteLine($"Token {token} joined room main");
@@ -98,7 +98,7 @@ namespace RTApp.Hubs
             var room = RoomMembers.GetOrAdd(roomName, new HashSet<RoomMember>());
             if (!room.Any(x => x.Token == token))
             {
-                room.Add(new RoomMember { Token = token, IsAdmin = true });
+                room.Add(new RoomMember { Token = token, IsAdmin = true, Online = true });
             }
             await Clients.Caller.SendAsync("ReceiveSuccess", $"Room {roomName} created with token {token}!");
 
@@ -106,7 +106,7 @@ namespace RTApp.Hubs
             var roomUsers = RoomMembers.Select(x => new
             {
                 roomName = x.Key,
-                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+                Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
             });
             await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
         }
@@ -122,9 +122,9 @@ namespace RTApp.Hubs
             var room = RoomMembers.GetOrAdd(roomName, new HashSet<RoomMember>());
             if (!room.Any(x => x.Token == token))
             {
-                room.Add(new RoomMember { Token = token, IsAdmin = false });
+                room.Add(new RoomMember { Token = token, IsAdmin = false, Online = true });
             }
-            else if (room.Any(x => x.IsAdmin == true))
+            else if (room.Any(x => x.IsAdmin == true && x.Token == token))
             {
                 room.FirstOrDefault(x => x.IsAdmin).Online = true;
             }
@@ -138,7 +138,7 @@ namespace RTApp.Hubs
             var roomUsers = RoomMembers.Select(x => new
             {
                 roomName = x.Key,
-                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+                Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
             });
             await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
             //ReceiveFileList();
@@ -153,14 +153,18 @@ namespace RTApp.Hubs
             {
                 return;
             }
-            RoomMembers[roomName].FirstOrDefault(x => x.Token == token && x.IsAdmin).Online = false;
+            var admin = RoomMembers[roomName].FirstOrDefault(x => x.Token == token && x.IsAdmin);
+            if (admin != null)
+            {
+                admin.Online = false;
+            }
             RoomMembers[roomName].RemoveWhere(x => x.Token == token && !x.IsAdmin);
             await SendRoomInfo(roomName);
 
             var roomUsers = RoomMembers.Select(x => new
             {
                 roomName = x.Key,
-                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+                Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
             });
             await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
         }
@@ -257,7 +261,7 @@ namespace RTApp.Hubs
             var roomUsers = RoomMembers.Select(x => new
             {
                 roomName = x.Key,
-                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+                Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
             });
             await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
         }
@@ -301,7 +305,7 @@ namespace RTApp.Hubs
             var roomUsers = RoomMembers.Select(x => new
             {
                 roomName = x.Key,
-                roomMembers = x.Value.Select(x => _userService.GetAvatarId(x.Token))
+                Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
             });
             await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
             //foreach (var connection in ConnectionUserNames)

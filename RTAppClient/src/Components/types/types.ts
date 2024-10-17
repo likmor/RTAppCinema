@@ -5,7 +5,12 @@ export interface Message {
 
 export interface Room {
   roomName: string;
-  roomMembers: string[];
+  users: UserPreview[];
+}
+
+export interface UserPreview {
+  avatar: string;
+  online: boolean;
 }
 
 export interface RoomMessages {
@@ -28,6 +33,7 @@ export interface User {
   name: string;
   image: string;
   owner: boolean;
+  online: boolean;
 }
 
 export interface RoomUsers {
