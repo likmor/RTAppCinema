@@ -1,4 +1,4 @@
-import { Avatar, filter, Flex } from "@chakra-ui/react";
+import { Avatar, Flex } from "@chakra-ui/react";
 import { FaKey } from "react-icons/fa";
 import { SERVER_STATIC } from "../config";
 import { User } from "./types/types";

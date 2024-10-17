@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.Extensions.Primitives;
 
 public class RoomMember
 {
@@ -24,7 +25,6 @@ namespace RTApp.Hubs
     public class RoomHub : Hub
     {
         public static ConcurrentDictionary<string, HashSet<RoomMember>> RoomMembers { get; set; } = new();
-        public static ConcurrentDictionary<string, string> ConnectionUserNames { get; set; } = new();
         public static ConcurrentDictionary<string, PlayerInfo> RoomPlayer { get; set; } = new();
 
 
@@ -128,10 +128,7 @@ namespace RTApp.Hubs
             {
                 room.FirstOrDefault(x => x.IsAdmin).Online = true;
             }
-            //ConnectionUserNames.AddOrUpdate(connectionId, user, (key, oldValue) => user);
-            //
             _userService.AddOrUpdateNickname(token, user);
-            //
             SendRoomInfo(roomName);
             Console.WriteLine($"Token {token} joined room {roomName}");
 
@@ -183,11 +180,7 @@ namespace RTApp.Hubs
             _userService.AddOrUpdateNickname(token, user);
             _userService.UpdateConnectionId(token, connectionId);
 
-            //ConnectionUserNames.AddOrUpdate(connectionId, user, (key, oldValue) => user);
-            //
-            //_userService.AddOrUpdateNickname(token, user);
             string nickname = _userService.GetNickname(token);
-            //
             var senderInfo = RoomMembers.GetValueOrDefault(roomName)
                 .FirstOrDefault(x => x.Token == token);
 
@@ -270,7 +263,7 @@ namespace RTApp.Hubs
         {
             var connectionId = Context.ConnectionId;
             await Console.Out.WriteLineAsync(connectionId);
-
+            string tk = Context.UserIdentifier
             string token = _userService.GetTokenFromConnectionId(connectionId);
             if (token == null)
             {
@@ -308,13 +301,6 @@ namespace RTApp.Hubs
                 Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
             });
             await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
-            //foreach (var connection in ConnectionUserNames)
-            //{
-            //    if (connection.Key == connectionId)
-            //    {
-            //        ConnectionUserNames.Remove(connectionId, out _);
-            //    }
-            //}
 
         }
         public string GetUserToken()

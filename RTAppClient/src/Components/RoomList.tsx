@@ -12,7 +12,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Room, UserPreview } from "./types/types.ts";
 import { SERVER_STATIC } from "../config.ts";
-import { CgLayoutGrid } from "react-icons/cg";
 const RoomList: React.FC<{
   rooms: Room[];
   changeTitle: (title: string) => void;
