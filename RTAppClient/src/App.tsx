@@ -30,8 +30,8 @@ import {
 import Room from "./Components/Room";
 import axios from "axios";
 import { SERVER_HUB, SERVER_LOGIN_API, SERVER_STATIC } from "./config";
-import { UserConnectedToast } from "./Components/Toasts/UserConnectedToast";
-import { UserDisonnectedToast } from "./Components/Toasts/UserDisconnectedToast";
+// import { UserConnectedToast } from "./Components/Toasts/UserConnectedToast";
+// import { UserDisonnectedToast } from "./Components/Toasts/UserDisconnectedToast";
 import { User, RoomInfoModel, Players, PlayerInfo } from "./Components/types/types";
 
 interface RoomMessages {
@@ -51,8 +51,8 @@ function App() {
   const [roomMessages, setRoomMessages] = useState<RoomMessages[]>([]);
   const [players, setPlayers] = useState<Players[]>([]);
   const [title, setTitle] = useState<string>("");
-  const { addToastConnected } = UserConnectedToast();
-  const { addToastDisconnected } = UserDisonnectedToast();
+  // const { addToastConnected } = UserConnectedToast();
+  // const { addToastDisconnected } = UserDisonnectedToast();
   const [roomName, setRoomName] = useState<string | null>();
 
 
@@ -95,7 +95,7 @@ function App() {
         .configureLogging(LogLevel.Information)
         .build();
 
- 
+
       connection.on("ReceiveRoomsList", (message: RoomInfoModel[]) => {
         setRooms(message)
       });
@@ -196,7 +196,7 @@ function App() {
         const username = localStorage.getItem("UserName") ?? "";
         const avatarId = localStorage.getItem("AvatarId") ?? "";
         await connection.invoke("UpdateProfile", username, avatarId);
-  
+
       } catch (err) {
         console.error("Error connecting to SignalR Hub:", err);
       }

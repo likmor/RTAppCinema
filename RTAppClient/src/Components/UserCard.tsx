@@ -1,7 +1,7 @@
 import { Avatar, Flex } from "@chakra-ui/react";
 import { FaKey } from "react-icons/fa";
 import { SERVER_STATIC } from "../config";
-import { User, UserInfoModel } from "./types/types";
+import { UserInfoModel } from "./types/types";
 
 interface Props {
   user: UserInfoModel | undefined;
