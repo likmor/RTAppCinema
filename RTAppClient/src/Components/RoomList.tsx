@@ -56,6 +56,7 @@ const RoomCard: React.FC<{ roomName: string; UserPreviews: UserInfoModel[]; admi
       bgPos="center center"
       flexDir="column"
       justify="flex-end"
+      filter={!admin.online ? "grayscale(1)" : "none"}
     >
       <AvatarGroup mb="auto" max={2} alignSelf="end" opacity="0.88">
         {UserPreviews?.map((id, index) => (
