@@ -32,7 +32,7 @@ import axios from "axios";
 import { SERVER_HUB, SERVER_LOGIN_API, SERVER_STATIC } from "./config";
 import { UserConnectedToast } from "./Components/Toasts/UserConnectedToast";
 import { UserDisonnectedToast } from "./Components/Toasts/UserDisconnectedToast";
-import { User, Room as IRoom } from "./Components/types/types";
+import { User, RoomInfoModel, Players, PlayerInfo } from "./Components/types/types";
 
 interface RoomMessages {
   roomName: string;
@@ -44,28 +44,11 @@ interface MessageProp {
   text: string;
 }
 
-interface RoomUsers {
-  roomName: string;
-  users: User[];
-}
-
-interface PlayerInfo {
-  paused: boolean;
-  time: number;
-  name: string;
-}
-
-interface Players {
-  roomName: string;
-  playerInfo: PlayerInfo;
-}
-
 function App() {
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<IRoom[]>([]);
+  const [rooms, setRooms] = useState<RoomInfoModel[]>([]);
   const [roomExists, setRoomExists] = useState<boolean>(false);
   const [roomMessages, setRoomMessages] = useState<RoomMessages[]>([]);
-  const [roomUsers, setRoomUsers] = useState<RoomUsers[]>([]);
   const [players, setPlayers] = useState<Players[]>([]);
   const [title, setTitle] = useState<string>("");
   const { addToastConnected } = UserConnectedToast();
@@ -111,9 +94,10 @@ function App() {
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Information)
         .build();
-      connection.on("ReceiveRoomsList", (message: IRoom[]) => {
-        console.log(message)
-        setRooms(message);
+
+ 
+      connection.on("ReceiveRoomsList", (message: RoomInfoModel[]) => {
+        setRooms(message)
       });
 
       connection.on("ReceiveError", (message: string) => {
@@ -134,54 +118,54 @@ function App() {
         console.log(files);
       });
 
-      connection.on(
-        "ReceiveRoomInfo",
-        (
-          roomName: string,
-          users: User[]
-        ) => {
-          setRoomUsers((prevState) => {
-            const roomIndex = prevState.findIndex(
-              (room) => room.roomName === roomName
-            );
-            if (roomIndex > -1) {
-              const updatedRooms = [...prevState];
-              updatedRooms[roomIndex] = { roomName, users };
+      // connection.on(
+      //   "ReceiveRoomInfo",
+      //   (
+      //     roomName: string,
+      //     users: User[]
+      //   ) => {
+      //     setRoomUsers((prevState) => {
+      //       const roomIndex = prevState.findIndex(
+      //         (room) => room.name === roomName
+      //       );
+      //       if (roomIndex > -1) {
+      //         const updatedRooms = [...prevState];
+      //         updatedRooms[roomIndex] = { roomName, users };
 
-              const currentUsers = updatedRooms[roomIndex].users;
-              const previousUsers = prevState[roomIndex].users;
+      //         const currentUsers = updatedRooms[roomIndex].users;
+      //         const previousUsers = prevState[roomIndex].users;
 
-              const currentUsersSet = new Set(
-                currentUsers.map((user) => user.name)
-              );
-              const previousUsersSet = new Set(
-                previousUsers.map((user) => user.name)
-              );
+      //         const currentUsersSet = new Set(
+      //           currentUsers.map((user) => user.name)
+      //         );
+      //         const previousUsersSet = new Set(
+      //           previousUsers.map((user) => user.name)
+      //         );
 
-              const newUsers = currentUsers.filter(
-                (user) => !previousUsersSet.has(user.name)
-              );
+      //         const newUsers = currentUsers.filter(
+      //           (user) => !previousUsersSet.has(user.name)
+      //         );
 
-              const removedUsers = previousUsers.filter(
-                (user) => !currentUsersSet.has(user.name)
-              );
+      //         const removedUsers = previousUsers.filter(
+      //           (user) => !currentUsersSet.has(user.name)
+      //         );
 
-              if (newUsers.length > 0 && roomName != "main") {
-                addToastConnected(newUsers[0]);
-              }
+      //         if (newUsers.length > 0 && roomName != "main") {
+      //           addToastConnected(newUsers[0]);
+      //         }
 
-              if (removedUsers.length > 0 && roomName != "main") {
-                addToastDisconnected(removedUsers[0]);
+      //         if (removedUsers.length > 0 && roomName != "main") {
+      //           addToastDisconnected(removedUsers[0]);
 
-              }
+      //         }
 
-              return updatedRooms;
-            } else {
-              return [...prevState, { roomName, users }];
-            }
-          });
-        }
-      );
+      //         return updatedRooms;
+      //       } else {
+      //         return [...prevState, { roomName, users }];
+      //       }
+      //     });
+      //   }
+      // );
       connection.on(
         "ReceivePlayerInfo",
         (roomName: string, player: PlayerInfo) => {
@@ -206,8 +190,13 @@ function App() {
         console.log("Connected to SignalR Hub");
         setHubConnection(connection);
 
-        await connection.invoke("JoinMainRoom", "user");
+        await connection.invoke("JoinMainRoom");
         console.log("Joined main room successfully");
+
+        const username = localStorage.getItem("UserName") ?? "";
+        const avatarId = localStorage.getItem("AvatarId") ?? "";
+        await connection.invoke("UpdateProfile", username, avatarId);
+  
       } catch (err) {
         console.error("Error connecting to SignalR Hub:", err);
       }
@@ -217,7 +206,7 @@ function App() {
       let token = localStorage.getItem("jwt");
       if (!token) {
         const response = await axios.post(SERVER_LOGIN_API);
-        token = response.data.token;
+        token = await response.data.token;
         localStorage.setItem("jwt", token ?? "");
       }
       await startSignalRConnection(token ?? "");
@@ -365,7 +354,7 @@ function App() {
                     changeTitle={changeTitle}
                     invoke={InvokeMessage}
                     messages={roomMessages}
-                    users={roomUsers}
+                    users={rooms}
                     players={players}
                   />
                 }

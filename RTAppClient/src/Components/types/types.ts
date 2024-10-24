@@ -3,6 +3,17 @@ export interface Message {
   text: string;
 }
 
+export interface RoomInfoModel {
+  name: string;
+  admin: UserInfoModel;
+  users: UserInfoModel[];
+}
+export interface UserInfoModel {
+  name: string;
+  avatarId: string;
+  online: boolean;
+  owner: boolean;
+}
 export interface Room {
   roomName: string;
   users: UserPreview[];
@@ -20,8 +31,8 @@ export interface RoomMessages {
 
 export interface PlayerInfo {
   paused: boolean;
-  time: number;
-  name: string;
+  currentTime: number;
+  fileName: string;
 }
 
 export interface Players {

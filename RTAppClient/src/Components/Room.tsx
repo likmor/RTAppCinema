@@ -5,7 +5,7 @@ import VideoPlayer from "./VideoPlayer";
 import { Flex } from "@chakra-ui/react";
 import FileViewer from "./FileBrowser";
 import { SERVER_URL } from "../config";
-import { Players, RoomMessages, RoomUsers } from "./types/types";
+import { PlayerInfo, Players, RoomInfoModel, RoomMessages } from "./types/types";
 
 const videoJsOptions = {
   //  playbackRates: [0.5, 1, 1.25, 1.5, 2],
@@ -26,7 +26,7 @@ interface Props {
   changeTitle: (newTitle: string) => void;
   invoke: (message: string, ...args: any[]) => void;
   messages: RoomMessages[];
-  users: RoomUsers[];
+  users: RoomInfoModel[];
   players: Players[];
 }
 
@@ -44,28 +44,35 @@ const Room: React.FC<Props> = ({
 
   useEffect(() => {
     if (roomName) {
-      const userName = localStorage.getItem("UserName") ?? "";
       setRoomName(roomName);
-      invoke("JoinRoom", userName, roomName);
+      invoke("JoinRoom", roomName);
     }
   }, []);
 
   useEffect(() => {
     if (players != undefined && playerRef.current != null) {
-      let newInfo: any = players.find(
+      let newInfo: PlayerInfo | undefined = players.find(
         (room) => room.roomName == roomName
       )?.playerInfo;
-      newInfo?.isPaused ? playerRef.current.pause() : playerRef.current.play();
-      let dif = Math.abs(playerRef.current.currentTime() - newInfo.currentTime);
+      if (!newInfo) {
+        newInfo = {
+          paused: true,
+          currentTime: 0,
+          fileName: ""
+        };
+      }
+
+      newInfo?.paused ? playerRef.current.pause() : playerRef.current.play();
+      let dif = Math.abs(playerRef.current.currentTime() - newInfo?.currentTime);
       console.log((dif * 1000).toFixed(1) + " ms dif");
       dif > 1 ? playerRef.current.currentTime(newInfo.currentTime) : null;
-      playerRef.current.currentSource().src != newInfo.name
+      playerRef.current.currentSource().src != newInfo.fileName
         ? playerRef.current.src({
             type: "video/mp4",
-            src: newInfo.name,
+            src: newInfo.fileName,
           })
         : null;
-      changeTitle(newInfo.name.split("/").pop() ?? "");
+      changeTitle(newInfo.fileName.split("/").pop() ?? "");
     }
   }, [players]);
 
@@ -122,7 +129,8 @@ const Room: React.FC<Props> = ({
         messages={
           messages.find((room) => room.roomName === roomName)?.messages ?? []
         }
-        users={users.find((room) => room.roomName === roomName)?.users ?? []}
+        users={users.find((room) => room.name === roomName)?.users ?? []}
+        admin={users.find((room) => room.name === roomName)?.admin}
       />
     </>
   );
