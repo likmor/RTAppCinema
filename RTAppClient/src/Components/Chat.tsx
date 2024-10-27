@@ -30,7 +30,6 @@ const Chat: React.FC<Props> = ({ invoke, messages, chatName, users, admin }) => 
     e.preventDefault();
     invoke(
       "SendMessage",
-      localStorage.getItem("UserName") ?? "",
       chatName,
       message
     );
