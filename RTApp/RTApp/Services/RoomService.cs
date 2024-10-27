@@ -5,7 +5,6 @@ public interface IRoomService
     public void AddUserToRoom(string roomName, string token);
     public void RemoveUserFromRoom(string roomName, string token);
     public void RemoveUserFromAllRooms(string token);
-
     public User? TryGetUser(string token);
     public Room? GetOrCreateRoom(string roomName, string adminToken);
     public IEnumerable<RoomInfoModel> GetAllRooms();
@@ -41,7 +40,6 @@ public class RoomService : IRoomService
             room.UserTokens.Remove(token);
         }
     }
-
     public Room GetOrCreateRoom(string roomName, string adminToken)
     {
         var existingRoom = _rooms.FirstOrDefault(r => r.Name == roomName);
@@ -72,6 +70,7 @@ public class RoomService : IRoomService
             if (admin != null)
             {
                 admin.Online = room.UserTokens.Any(u => u == room.AdminToken);
+                admin.Owner = true;
             }
             var roomInfo = new RoomInfoModel()
             {
