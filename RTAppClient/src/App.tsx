@@ -30,9 +30,15 @@ import {
 import Room from "./Components/Room";
 import axios from "axios";
 import { SERVER_HUB, SERVER_LOGIN_API, SERVER_STATIC } from "./config";
-// import { UserConnectedToast } from "./Components/Toasts/UserConnectedToast";
-// import { UserDisonnectedToast } from "./Components/Toasts/UserDisconnectedToast";
-import { User, RoomInfoModel, Players, PlayerInfo } from "./Components/types/types";
+import { UserConnectedToast } from "./Components/Toasts/UserConnectedToast";
+import { UserDisonnectedToast } from "./Components/Toasts/UserDisconnectedToast";
+import {
+  User,
+  RoomInfoModel,
+  Players,
+  PlayerInfo,
+  UserInfoModel,
+} from "./Components/types/types";
 
 interface RoomMessages {
   roomName: string;
@@ -51,10 +57,9 @@ function App() {
   const [roomMessages, setRoomMessages] = useState<RoomMessages[]>([]);
   const [players, setPlayers] = useState<Players[]>([]);
   const [title, setTitle] = useState<string>("");
-  // const { addToastConnected } = UserConnectedToast();
-  // const { addToastDisconnected } = UserDisonnectedToast();
+  const { addToastConnected } = UserConnectedToast();
+  const { addToastDisconnected } = UserDisonnectedToast();
   const [roomName, setRoomName] = useState<string | null>();
-
 
   const {
     isOpen: isUserNameModalOpen,
@@ -95,9 +100,8 @@ function App() {
         .configureLogging(LogLevel.Information)
         .build();
 
-
       connection.on("ReceiveRoomsList", (message: RoomInfoModel[]) => {
-        setRooms(message)
+        setRooms(message);
       });
 
       connection.on("ReceiveError", (message: string) => {
@@ -114,58 +118,21 @@ function App() {
           addMessageToRoom(roomName, { user, text });
         }
       );
+      connection.on(
+        "UserConnected",
+        (user : UserInfoModel) => {
+          addToastConnected(user);
+        }
+      );
+      connection.on(
+        "UserDisconnected",
+        (user : UserInfoModel) => {
+          addToastDisconnected(user);
+        }
+      );
       connection.on("ReceiveFileList", (files: any) => {
         console.log(files);
       });
-
-      // connection.on(
-      //   "ReceiveRoomInfo",
-      //   (
-      //     roomName: string,
-      //     users: User[]
-      //   ) => {
-      //     setRoomUsers((prevState) => {
-      //       const roomIndex = prevState.findIndex(
-      //         (room) => room.name === roomName
-      //       );
-      //       if (roomIndex > -1) {
-      //         const updatedRooms = [...prevState];
-      //         updatedRooms[roomIndex] = { roomName, users };
-
-      //         const currentUsers = updatedRooms[roomIndex].users;
-      //         const previousUsers = prevState[roomIndex].users;
-
-      //         const currentUsersSet = new Set(
-      //           currentUsers.map((user) => user.name)
-      //         );
-      //         const previousUsersSet = new Set(
-      //           previousUsers.map((user) => user.name)
-      //         );
-
-      //         const newUsers = currentUsers.filter(
-      //           (user) => !previousUsersSet.has(user.name)
-      //         );
-
-      //         const removedUsers = previousUsers.filter(
-      //           (user) => !currentUsersSet.has(user.name)
-      //         );
-
-      //         if (newUsers.length > 0 && roomName != "main") {
-      //           addToastConnected(newUsers[0]);
-      //         }
-
-      //         if (removedUsers.length > 0 && roomName != "main") {
-      //           addToastDisconnected(removedUsers[0]);
-
-      //         }
-
-      //         return updatedRooms;
-      //       } else {
-      //         return [...prevState, { roomName, users }];
-      //       }
-      //     });
-      //   }
-      // );
       connection.on(
         "ReceivePlayerInfo",
         (roomName: string, player: PlayerInfo) => {
@@ -196,7 +163,6 @@ function App() {
         const username = localStorage.getItem("UserName") ?? "";
         const avatarId = localStorage.getItem("AvatarId") ?? "";
         await connection.invoke("UpdateProfile", username, avatarId);
-
       } catch (err) {
         console.error("Error connecting to SignalR Hub:", err);
       }
@@ -269,7 +235,7 @@ function App() {
   };
   const leaveLastRoom = () => {
     roomName && InvokeMessage("LeaveRoom", roomName);
-  }
+  };
 
   const changeTitle = (newTitle: string) => {
     document.title = newTitle;
@@ -344,7 +310,13 @@ function App() {
             <Routes>
               <Route
                 path="/home"
-                element={<RoomList leaveLastRoom={leaveLastRoom} rooms={rooms} changeTitle={changeTitle} />}
+                element={
+                  <RoomList
+                    leaveLastRoom={leaveLastRoom}
+                    rooms={rooms}
+                    changeTitle={changeTitle}
+                  />
+                }
               />
               <Route
                 path="/room/:roomName"

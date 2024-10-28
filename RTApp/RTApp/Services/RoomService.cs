@@ -11,6 +11,7 @@ public interface IRoomService
     public bool DoesRoomExists(string roomName);
     public bool TryUpdatePlayer(string roomName, string token, PlayerStateModel state);
     public PlayerStateModel? GetPlayerState(string roomName);
+    public IEnumerable<string> GetUserGroups(string token);
 
 }
 public class RoomService : IRoomService
@@ -61,6 +62,10 @@ public class RoomService : IRoomService
     public User? TryGetUser(string token)
     {
         return _userService.GetOrCreateUser(token);
+    }
+    public IEnumerable<string> GetUserGroups(string token)
+    {
+        return _rooms.Where(room => room.Name != "main" && room.UserTokens.Any(_token => _token == token)).Select(room => room.Name);
     }
     public IEnumerable<RoomInfoModel> GetAllRooms()
     {

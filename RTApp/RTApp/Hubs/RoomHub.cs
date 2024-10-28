@@ -41,12 +41,6 @@ namespace RTApp.Hubs
             string userToken = GetUserToken();
             {
                 string connectionId = Context.ConnectionId;
-                //if (!string.IsNullOrEmpty(connectionId))
-                //{
-                //    _userService.AddOrUpdateNickname(userToken, "");
-                //    //_userService.UpdateConnectionId(userToken, connectionId);
-                //}
-
             }
         }
 
@@ -54,28 +48,11 @@ namespace RTApp.Hubs
         {
             string connectionId = Context.ConnectionId;
             string token = GetUserToken();
-            //_userService.AddOrUpdateNickname(token, user);
-            //_userService.UpdateConnectionId(token, connectionId);
-
 
             _roomService.AddUserToRoom("main", token);
             await Groups.AddToGroupAsync(connectionId, "main");
-            //await Clients.Caller.SendAsync("ReceiveRoomsList", _roomService.GetAllRooms());
 
             await SendUpdatedRoomList();
-            //var room = RoomMembers.GetOrAdd("main", new HashSet<RoomMember>());
-            //if (!room.Any(x => x.Token == token))
-            //{
-            //    room.Add(new RoomMember { Token = token, IsAdmin = false, Online = true });
-            //}
-
-            //var roomUsers = RoomMembers.Select(x => new
-            //{
-            //    roomName = x.Key,
-            //    Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
-            //});
-            //await Clients.Caller.SendAsync("ReceiveRoomsList", roomUsers);
-            //Console.WriteLine($"Token {token} joined room main");
         }
         public async Task UpdateProfile(string username, string avatarId)
         {
@@ -83,24 +60,7 @@ namespace RTApp.Hubs
             var user = _userService.GetOrCreateUser(token);
             user.Name = username;
             user.AvatarId = avatarId;
-            //_userService.AddOrUpdateNickname(token, username);
-            //_userService.AddOrUpdateAvatarId(token, avatarId);
-            //var matchingRooms = RoomMembers
-            //    .Where(i => i.Value.Any(j => j.Token == token))
-            //    .Select(i => i.Key);
 
-            //foreach (var room in matchingRooms)
-            //{
-            //    SendRoomInfo(room);
-            //}
-
-            //var roomUsers = RoomMembers.Select(x => new
-            //{
-            //    roomName = x.Key,
-            //    Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
-            //});
-            //var roomList = _roomService.GetAllRooms();
-            //await Clients.Group("main").SendAsync("ReceiveRoomsList", roomList);
             await SendUpdatedRoomList();
         }
 
@@ -108,8 +68,6 @@ namespace RTApp.Hubs
         {
             string connectionId = Context.ConnectionId;
             string token = GetUserToken();
-            //_userService.AddOrUpdateNickname(token, user);
-            //_userService.UpdateConnectionId(token, connectionId);
 
             await Console.Out.WriteLineAsync($"Creating room: {roomName}");
             if (_roomService.DoesRoomExists(roomName))
@@ -118,64 +76,23 @@ namespace RTApp.Hubs
                 return;
             }
             _roomService.GetOrCreateRoom(roomName, token);
-            //if (RoomMembers.ContainsKey(roomName))
-            //{
-            //    await Clients.Caller.SendAsync("ReceiveError", "Room already exists!");
-            //    return;
-            //}
-            //await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
-            //var room = RoomMembers.GetOrAdd(roomName, new HashSet<RoomMember>());
-            //if (!room.Any(x => x.Token == token))
-            //{
-            //    room.Add(new RoomMember { Token = token, IsAdmin = true, Online = true });
-            //}
             await Clients.Caller.SendAsync("ReceiveSuccess", $"Room {roomName} created with token {token}!");
 
-
-            //var roomUsers = RoomMembers.Select(x => new
-            //{
-            //    roomName = x.Key,
-            //    Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
-            //});
-            //await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
             await SendUpdatedRoomList();
         }
         public async Task JoinRoom(string roomName)
         {
             string connectionId = Context.ConnectionId;
             string token = GetUserToken();
-            //_userService.AddOrUpdateNickname(token, user);
-            //_userService.UpdateConnectionId(token, connectionId);
 
-            if (_roomService.DoesRoomExists(roomName))
+            if (!_roomService.DoesRoomExists(roomName))
             {
-                _roomService.AddUserToRoom(roomName, token);
-                await Groups.AddToGroupAsync(connectionId, roomName);
+                return; //Trying to enter nonexistent room
             }
-            else
-            {
-                //Trying to enter nonexistent room
-            }
-            //var room = RoomMembers.GetOrAdd(roomName, new HashSet<RoomMember>());
-            //if (!room.Any(x => x.Token == token))
-            //{
-            //    room.Add(new RoomMember { Token = token, IsAdmin = false, Online = true });
-            //}
-            //else if (room.Any(x => x.IsAdmin == true && x.Token == token))
-            //{
-            //    room.FirstOrDefault(x => x.IsAdmin).Online = true;
-            //}
-            //_userService.AddOrUpdateNickname(token, user);
-            //SendRoomInfo(roomName);
-            //Console.WriteLine($"Token {token} joined room {roomName}");
+            _roomService.AddUserToRoom(roomName, token);
+            await Groups.AddToGroupAsync(connectionId, roomName);
+            await Clients.OthersInGroup(roomName).SendAsync("UserConnected", _userService.GetUserInfo(token));
 
-            //var roomUsers = RoomMembers.Select(x => new
-            //{
-            //    roomName = x.Key,
-            //    Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
-            //});
-            //await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
-            //ReceiveFileList();
             await SendUpdatedRoomList();
         }
         public async Task LeaveRoom(string roomName)
@@ -183,47 +100,16 @@ namespace RTApp.Hubs
             var connectionId = Context.ConnectionId;
             string token = GetUserToken();
 
+            await Clients.OthersInGroup(roomName).SendAsync("UserDisconnected", _userService.GetUserInfo(token));
+
             await Groups.RemoveFromGroupAsync(connectionId, roomName);
             _roomService.RemoveUserFromRoom(roomName, token);
-            //string token = _userService.GetTokenFromConnectionId(connectionId);
-            //if (token == null)
-            //{
-            //    return;
-            //}
-            //var admin = RoomMembers[roomName].FirstOrDefault(x => x.Token == token && x.IsAdmin);
-            //if (admin != null)
-            //{
-            //    admin.Online = false;
-            //}
-            //RoomMembers[roomName].RemoveWhere(x => x.Token == token && !x.IsAdmin);
-            //await SendRoomInfo(roomName);
 
-            //var roomUsers = RoomMembers.Select(x => new
-            //{
-            //    roomName = x.Key,
-            //    Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
-            //});
-            //await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
             await SendUpdatedRoomList();
         }
-        //public async Task ReceiveFileList()
-        //{
-        //    var folderFiles = GetFilesFromFolders(_configuration["Files:Path"]);
-
-        //    string json = JsonSerializer.Serialize(folderFiles, new JsonSerializerOptions { WriteIndented = true });
-
-        //    Clients.Caller.SendAsync("ReceiveFileList", json);
-        //}
         public async Task SendMessage(string roomName, string text)
         {
-            string connectionId = Context.ConnectionId;
             string token = GetUserToken();
-            //_userService.AddOrUpdateNickname(token, user);
-            //_userService.UpdateConnectionId(token, connectionId);
-
-            //string nickname = _userService.GetNickname(token);
-            //var senderInfo = RoomMembers.GetValueOrDefault(roomName)
-            //    .FirstOrDefault(x => x.Token == token);
             var user = _roomService.TryGetUser(token);
             if (user == null)
             {
@@ -234,23 +120,9 @@ namespace RTApp.Hubs
                 name = user.Name,
                 image = user.AvatarId,
             };
-            //SendRoomInfo(roomName);
-            //await Console.Out.WriteLineAsync($"{token} send {text} in {roomName}");
+
             await Clients.Group(roomName).SendAsync("ReceiveMessage", roomName, userInfo, text);
-            //await SendUpdatedRoomList();
         }
-        //public async Task SendRoomInfo(string roomName)
-        //{
-        //    var users = RoomMembers.GetValueOrDefault(roomName).
-        //        Select(item => new
-        //        {
-        //            name = _userService.GetNickname(item.Token),
-        //            image = _userService.GetAvatarId(item.Token),
-        //            owner = item.IsAdmin,
-        //            online = item.Online,
-        //        });
-        //    await Clients.Group(roomName).SendAsync("ReceiveRoomInfo", roomName, users);
-        //}
         public async Task SendPlayerInfo(string roomName, bool isPaused, float time, string fileName)
         {
             string token = GetUserToken();
@@ -265,23 +137,6 @@ namespace RTApp.Hubs
             {
                 await ReceivePlayerInfo(roomName);
             }
-            //if (RoomMembers.GetValueOrDefault(roomName).Any(item => item.IsAdmin && token == item.Token))
-            //{
-            //    RoomPlayer.AddOrUpdate(
-            //                roomName,
-            //                new PlayerInfo { IsPaused = isPaused, currentTime = time, Name = name }, // Value to add if the key does not exist
-            //                (key, existingPlayerInfo) =>
-            //                {
-            //                    // Update the existing player info
-            //                    existingPlayerInfo.IsPaused = isPaused;
-            //                    existingPlayerInfo.currentTime = time;
-            //                    existingPlayerInfo.Name = name;
-            //                    return existingPlayerInfo;
-            //                }
-            //            );
-            //    ReceivePlayerInfo(roomName);
-            //}
-            //await Clients.Group(roomName).SendAsync("ReceivePlayerInfo", roomName, users);
         }
         public async Task ReceivePlayerInfo(string roomName)
         {
@@ -292,12 +147,6 @@ namespace RTApp.Hubs
                 return;
             }
             await Clients.OthersInGroup(roomName).SendAsync("ReceivePlayerInfo", roomName, state);
-            //var playerInfo = RoomPlayer.GetValueOrDefault(roomName);
-            //if (playerInfo != null)
-            //{
-            //    Clients.OthersInGroup(roomName).SendAsync("ReceivePlayerInfo", roomName, new { playerInfo.IsPaused, playerInfo.currentTime, playerInfo.Name });
-
-            //}
         }
 
 
@@ -306,45 +155,14 @@ namespace RTApp.Hubs
 
             var connectionId = Context.ConnectionId;
             var token = GetUserToken();
+            foreach (var room in _roomService.GetUserGroups(token))
+            {
+                await Clients.OthersInGroup(room).SendAsync("UserDisconnected", _userService.GetUserInfo(token));
+            }
+
             _roomService.RemoveUserFromAllRooms(token);
+            await base.OnDisconnectedAsync(exception);
 
-            //string token = _userService.GetTokenFromConnectionId(connectionId);
-            //if (token == null)
-            //{
-                await base.OnDisconnectedAsync(exception);
-            //    return;
-            //}
-            //Console.WriteLine($"Client disconnected: {GetUserToken()}");
-            //foreach (var roomEntry in RoomMembers)
-            //{
-            //    var roomName = roomEntry.Key;
-            //    var members = roomEntry.Value;
-
-            //    var memberToRemove = members.FirstOrDefault(m => m.Token == token && !m.IsAdmin);
-            //    var adminToRemove = members.FirstOrDefault(m => m.Token == token && m.IsAdmin);
-
-
-
-            //    if (memberToRemove != null)
-            //    {
-            //        members.Remove(memberToRemove);
-            //        SendRoomInfo(roomName);
-
-            //    }
-            //    if (adminToRemove != null)
-            //    {
-            //        adminToRemove.Online = false;
-            //        SendRoomInfo(roomName);
-
-            //    }
-            //}
-
-            //var roomUsers = RoomMembers.Select(x => new
-            //{
-            //    roomName = x.Key,
-            //    Users = x.Value.Select(x => new { avatar = _userService.GetAvatarId(x.Token), online = x.Online })
-            //});
-            //await Clients.Group("main").SendAsync("ReceiveRoomsList", roomUsers);
             await SendUpdatedRoomList();
 
         }

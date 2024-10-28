@@ -13,11 +13,5 @@ namespace RTApp.Controllers
         {
             _logger = logger;
         }
-        //[HttpGet]
-        //public ActionResult<IEnumerable<string>> GetRooms()
-        //{
-        //    return Ok(RoomHub.RoomMembers.Keys);
-        //}
-
     }
 }

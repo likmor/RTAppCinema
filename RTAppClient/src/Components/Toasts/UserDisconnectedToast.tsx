@@ -1,5 +1,5 @@
 import { Avatar, Flex, ToastId, useToast } from "@chakra-ui/react";
-import { User } from "../types/types";
+import { User, UserInfoModel } from "../types/types";
 import { SERVER_STATIC } from "../../config";
 import { useEffect, useRef } from "react";
 
@@ -17,7 +17,7 @@ export const UserDisonnectedToast = () => {
             toast.closeAll();
         }
     }
-    const addToastDisconnected = (user: User) => {
+    const addToastDisconnected = (user: UserInfoModel) => {
         sound.play();
         toastIdRef.current = toast({
             position: "top-right",
@@ -34,7 +34,7 @@ export const UserDisonnectedToast = () => {
                             filter="grayscale(1)"
                             shadow="2xl"
                             size="md"
-                            src={SERVER_STATIC + '/avatars/' + user.image}
+                            src={SERVER_STATIC + '/avatars/' + user.avatarId}
                         />
                         <span className="text-lg font-bold pl-2">{user.name}</span>
                     </Flex >
