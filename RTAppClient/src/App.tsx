@@ -315,6 +315,7 @@ function App() {
                     leaveLastRoom={leaveLastRoom}
                     rooms={rooms}
                     changeTitle={changeTitle}
+                    invoke={InvokeMessage}
                   />
                 }
               />

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using RTApp.Hubs;
 using System.Text;
@@ -57,6 +58,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IUserService, UserService>();
 builder.Services.AddSingleton<IRoomService, RoomService>();
+builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
+
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 var app = builder.Build();
@@ -75,6 +78,7 @@ app.UseCors("AllowAllOrigins");
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
+app.UseAuthentication();
 
 app.MapHub<RoomHub>("/hub");
 app.MapControllers();

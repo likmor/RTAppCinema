@@ -1,5 +1,5 @@
 import { Avatar, Flex, ToastId, useToast } from "@chakra-ui/react";
-import { User, UserInfoModel } from "../types/types";
+import { UserInfoModel } from "../types/types";
 import { SERVER_STATIC } from "../../config";
 import { useEffect, useRef } from "react";
 

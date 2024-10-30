@@ -7,6 +7,7 @@ export interface RoomInfoModel {
   name: string;
   admin: UserInfoModel;
   users: UserInfoModel[];
+  deletable: boolean;
 }
 export interface UserInfoModel {
   name: string;
