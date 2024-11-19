@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Chat from "./Chat";
 import VideoPlayer from "./VideoPlayer";
@@ -6,7 +6,6 @@ import { Flex } from "@chakra-ui/react";
 import FileViewer from "./FileBrowser";
 import { SERVER_URL } from "../config";
 import { PlayerInfo, Players, RoomInfoModel, RoomMessages } from "./types/types";
-import Overlay from "./Overlay";
 
 const videoJsOptions = {
   //  playbackRates: [0.5, 1, 1.25, 1.5, 2],
@@ -43,7 +42,6 @@ const Room: React.FC<Props> = ({
   const playerRef = React.useRef<any>(null);
   const playerDivRef = React.useRef(null);
 
-  const [isOverlayActive, setIsOverlayActive] = useState<boolean>(false);
 
   useEffect(() => {
     if (roomName) {
@@ -114,7 +112,6 @@ const Room: React.FC<Props> = ({
 
   return (
     <>
-      {isOverlayActive && <Overlay path="test.gif" setIsActive={setIsOverlayActive}/>}
       <Flex direction="column" className="w-[75%] h-full ">
         <div className="h-[65%]" ref={playerDivRef}>
           <VideoPlayer

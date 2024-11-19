@@ -38,7 +38,6 @@ const RoomList: React.FC<{
     </>
   );
 };
-//@ts-expect-error
 const MotionFlex = motion(Flex);
 
 const RoomCard: React.FC<{

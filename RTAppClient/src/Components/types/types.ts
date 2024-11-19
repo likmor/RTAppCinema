@@ -1,5 +1,5 @@
 export interface Message {
-  user: User;
+  user: UserInfoModel;
   text: string;
 }
 
@@ -54,15 +54,20 @@ export interface RoomUsers {
 }
 
 export interface FileItem {
-    id: string;
-    name: string;
-    isDir: boolean;
-    childrenIds: string[];
-    childrenCount: number;
-    parentId: string;
-  }
-  
-  export interface Root {
-    rootFolderId: string;
-    fileMap: { [key: string]: FileItem };
-  }
+  id: string;
+  name: string;
+  isDir: boolean;
+  childrenIds: string[];
+  childrenCount: number;
+  parentId: string;
+}
+
+export interface Root {
+  rootFolderId: string;
+  fileMap: { [key: string]: FileItem };
+}
+
+export interface OverlayInfo {
+  path : string;
+  active : boolean;
+}

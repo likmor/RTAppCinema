@@ -59,6 +59,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IUserService, UserService>();
 builder.Services.AddSingleton<IRoomService, RoomService>();
 builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
+builder.Services.AddSingleton<IMessageService, MessageService>();
+
 
 
 builder.Services.AddScoped<IAuthService, AuthService>();

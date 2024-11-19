@@ -33,22 +33,20 @@ import { SERVER_HUB, SERVER_LOGIN_API, SERVER_STATIC } from "./config";
 import { UserConnectedToast } from "./Components/Toasts/UserConnectedToast";
 import { UserDisonnectedToast } from "./Components/Toasts/UserDisconnectedToast";
 import {
-  User,
   RoomInfoModel,
   Players,
   PlayerInfo,
   UserInfoModel,
+  OverlayInfo,
+  Message,
 } from "./Components/types/types";
+import Overlay from "./Components/Overlay";
 
 interface RoomMessages {
   roomName: string;
-  messages: MessageProp[];
+  messages: Message[];
 }
 
-interface MessageProp {
-  user: User;
-  text: string;
-}
 
 function App() {
   const navigate = useNavigate();
@@ -60,6 +58,7 @@ function App() {
   const { addToastConnected } = UserConnectedToast();
   const { addToastDisconnected } = UserDisonnectedToast();
   const [roomName, setRoomName] = useState<string | null>();
+  const [overlayInfo, setOverlayInfo] = useState<OverlayInfo | null>(null);
 
   const {
     isOpen: isUserNameModalOpen,
@@ -114,21 +113,25 @@ function App() {
       });
       connection.on(
         "ReceiveMessage",
-        (roomName: string, user: User, text: string) => {
+        (roomName: string, user: UserInfoModel, text: string) => {
           addMessageToRoom(roomName, { user, text });
         }
       );
       connection.on(
         "UserConnected",
-        (user : UserInfoModel) => {
+        (user: UserInfoModel) => {
           addToastConnected(user);
         }
       );
       connection.on(
         "UserDisconnected",
-        (user : UserInfoModel) => {
+        (user: UserInfoModel) => {
           addToastDisconnected(user);
         }
+      );
+      connection.on("ReceiveOverlay", (path: string) => {
+        setOverlayInfo({ active: true, path: path });
+      }
       );
       connection.on("ReceiveFileList", (files: any) => {
         console.log(files);
@@ -191,7 +194,7 @@ function App() {
     };
   }, [hubConnection]);
 
-  const addMessageToRoom = (roomName: string, newMessage: MessageProp) => {
+  const addMessageToRoom = (roomName: string, newMessage: Message) => {
     setRoomMessages((prevRoomMessages) => {
       const updatedRoomMessages = prevRoomMessages.map((room) => {
         if (room.roomName === roomName) {
@@ -322,14 +325,19 @@ function App() {
               <Route
                 path="/room/:roomName"
                 element={
-                  <Room
-                    setRoomName={setRoomName}
-                    changeTitle={changeTitle}
-                    invoke={InvokeMessage}
-                    messages={roomMessages}
-                    users={rooms}
-                    players={players}
-                  />
+                  <>
+                    {overlayInfo?.active && <Overlay info={overlayInfo} setInfo={setOverlayInfo} />}
+                    <Room
+                      setRoomName={setRoomName}
+                      changeTitle={changeTitle}
+                      invoke={InvokeMessage}
+                      messages={roomMessages}
+                      users={rooms}
+                      players={players}
+                    />
+
+                  </>
+
                 }
               />
               <Route path="*" element={<Navigate to="/home" />} />
