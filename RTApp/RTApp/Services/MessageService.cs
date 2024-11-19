@@ -22,18 +22,19 @@ public class MessageService : IMessageService
             return null;
         }
 
-        if (text.StartsWith("/overlay"))
+        if (text.StartsWith("/"))
         {
             if (_roomService.GetOrCreateRoom(roomName, token).AdminToken != token)
             {
                 return null;
-
             }
             string[] arg = text.Split(' ');
             if (arg.Length == 2)
             {
                 return new ProcessMessageResult() { IsOverlay = true, OverlayPath = arg[1] };
             }
+
+            return null;
         }
         return new ProcessMessageResult() {IsMessage = true, User = user, Message = text };
 
