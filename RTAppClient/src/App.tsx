@@ -16,6 +16,7 @@ import {
   Flex,
   Heading,
   Link,
+  Spinner,
   useDisclosure,
 } from "@chakra-ui/react";
 import UserNameModal from "./Components/Modals/UserNameModal";
@@ -29,11 +30,15 @@ import {
 import Room from "./Components/Room";
 import axios from "axios";
 import { SERVER_HUB, SERVER_LOGIN_API, SERVER_STATIC } from "./config";
-
-interface Room {
-  roomName: string;
-  roomMembers: string[];
-}
+import { UserConnectedToast } from "./Components/Toasts/UserConnectedToast";
+import { UserDisonnectedToast } from "./Components/Toasts/UserDisconnectedToast";
+import {
+  User,
+  RoomInfoModel,
+  Players,
+  PlayerInfo,
+  UserInfoModel,
+} from "./Components/types/types";
 
 interface RoomMessages {
   roomName: string;
@@ -45,34 +50,16 @@ interface MessageProp {
   text: string;
 }
 
-interface User {
-  name: string;
-  image: string;
-  owner: boolean;
-}
-
-interface RoomUsers {
-  roomName: string;
-  users: User[];
-}
-interface PlayerInfo {
-  paused: boolean;
-  time: number;
-  name: string;
-}
-interface Players {
-  roomName: string;
-  playerInfo: PlayerInfo;
-}
-
 function App() {
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [rooms, setRooms] = useState<RoomInfoModel[]>([]);
   const [roomExists, setRoomExists] = useState<boolean>(false);
   const [roomMessages, setRoomMessages] = useState<RoomMessages[]>([]);
-  const [roomUsers, setRoomUsers] = useState<RoomUsers[]>([]);
   const [players, setPlayers] = useState<Players[]>([]);
   const [title, setTitle] = useState<string>("");
+  const { addToastConnected } = UserConnectedToast();
+  const { addToastDisconnected } = UserDisonnectedToast();
+  const [roomName, setRoomName] = useState<string | null>();
 
   const {
     isOpen: isUserNameModalOpen,
@@ -112,8 +99,8 @@ function App() {
         .withAutomaticReconnect()
         .configureLogging(LogLevel.Information)
         .build();
-      connection.on("ReceiveRoomsList", (message: Room[]) => {
-        console.log(message);
+
+      connection.on("ReceiveRoomsList", (message: RoomInfoModel[]) => {
         setRooms(message);
       });
 
@@ -131,31 +118,21 @@ function App() {
           addMessageToRoom(roomName, { user, text });
         }
       );
+      connection.on(
+        "UserConnected",
+        (user : UserInfoModel) => {
+          addToastConnected(user);
+        }
+      );
+      connection.on(
+        "UserDisconnected",
+        (user : UserInfoModel) => {
+          addToastDisconnected(user);
+        }
+      );
       connection.on("ReceiveFileList", (files: any) => {
         console.log(files);
       });
-
-      connection.on(
-        "ReceiveRoomInfo",
-        (
-          roomName: string,
-          users: { name: string; image: string; owner: boolean }[]
-        ) => {
-          setRoomUsers((prevState) => {
-            const roomIndex = prevState.findIndex(
-              (room) => room.roomName === roomName
-            );
-
-            if (roomIndex > -1) {
-              const updatedRooms = [...prevState];
-              updatedRooms[roomIndex] = { roomName, users };
-              return updatedRooms;
-            } else {
-              return [...prevState, { roomName, users }];
-            }
-          });
-        }
-      );
       connection.on(
         "ReceivePlayerInfo",
         (roomName: string, player: PlayerInfo) => {
@@ -180,8 +157,12 @@ function App() {
         console.log("Connected to SignalR Hub");
         setHubConnection(connection);
 
-        await connection.invoke("JoinMainRoom", "user");
+        await connection.invoke("JoinMainRoom");
         console.log("Joined main room successfully");
+
+        const username = localStorage.getItem("UserName") ?? "";
+        const avatarId = localStorage.getItem("AvatarId") ?? "";
+        await connection.invoke("UpdateProfile", username, avatarId);
       } catch (err) {
         console.error("Error connecting to SignalR Hub:", err);
       }
@@ -191,7 +172,7 @@ function App() {
       let token = localStorage.getItem("jwt");
       if (!token) {
         const response = await axios.post(SERVER_LOGIN_API);
-        token = response.data.token;
+        token = await response.data.token;
         localStorage.setItem("jwt", token ?? "");
       }
       await startSignalRConnection(token ?? "");
@@ -252,6 +233,9 @@ function App() {
     setTitle("");
     path === "/home" ? null : navigate("/home");
   };
+  const leaveLastRoom = () => {
+    roomName && InvokeMessage("LeaveRoom", roomName);
+  };
 
   const changeTitle = (newTitle: string) => {
     document.title = newTitle;
@@ -298,7 +282,7 @@ function App() {
 
           <Box onClick={onUserNameModalOpen} ml="auto" className="">
             <Link>
-            <Heading
+              <Heading
                 p={5}
                 bg="gray.700"
                 boxShadow="dark-lg"
@@ -307,9 +291,8 @@ function App() {
               >
                 {localStorage.getItem("UserName")}
                 <Avatar
-                ml="2"
+                  ml="2"
                   shadow="2xl"
- 
                   src={
                     SERVER_STATIC +
                     "/avatars/" +
@@ -317,33 +300,42 @@ function App() {
                   }
                 />
               </Heading>
-              
             </Link>
           </Box>
         </div>
-        <Flex className="overflow-auto grow">
-          <Routes>
-            <Route
-              path="/home"
-              element={<RoomList rooms={rooms} changeTitle={changeTitle} />}
-            />
-            <Route
-              path="/room/:roomName"
-              element={
-                hubConnection?.state === HubConnectionState.Connected ? (
+        {hubConnection?.state !== HubConnectionState.Connected ? (
+          <Spinner alignSelf="center" size="xl"></Spinner>
+        ) : (
+          <Flex className="overflow-auto grow">
+            <Routes>
+              <Route
+                path="/home"
+                element={
+                  <RoomList
+                    leaveLastRoom={leaveLastRoom}
+                    rooms={rooms}
+                    changeTitle={changeTitle}
+                    invoke={InvokeMessage}
+                  />
+                }
+              />
+              <Route
+                path="/room/:roomName"
+                element={
                   <Room
+                    setRoomName={setRoomName}
                     changeTitle={changeTitle}
                     invoke={InvokeMessage}
                     messages={roomMessages}
-                    users={roomUsers}
+                    users={rooms}
                     players={players}
                   />
-                ) : null
-              }
-            />
-            <Route path="/" element={<Navigate to="/home" />} />
-          </Routes>
-        </Flex>
+                }
+              />
+              <Route path="*" element={<Navigate to="/home" />} />
+            </Routes>
+          </Flex>
+        )}
       </Flex>
     </>
   );

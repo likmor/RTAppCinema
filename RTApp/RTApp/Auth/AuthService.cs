@@ -25,7 +25,7 @@ public class AuthService : IAuthService
         var claims = new[]
 {
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+		};
 
         var token = new JwtSecurityToken(
             //issuer: _configuration["Jwt:Issuer"],

@@ -3,9 +3,26 @@ export interface Message {
   text: string;
 }
 
+export interface RoomInfoModel {
+  name: string;
+  admin: UserInfoModel;
+  users: UserInfoModel[];
+  deletable: boolean;
+}
+export interface UserInfoModel {
+  name: string;
+  avatarId: string;
+  online: boolean;
+  owner: boolean;
+}
 export interface Room {
   roomName: string;
-  roomMembers: string[];
+  users: UserPreview[];
+}
+
+export interface UserPreview {
+  avatar: string;
+  online: boolean;
 }
 
 export interface RoomMessages {
@@ -15,8 +32,8 @@ export interface RoomMessages {
 
 export interface PlayerInfo {
   paused: boolean;
-  time: number;
-  name: string;
+  currentTime: number;
+  fileName: string;
 }
 
 export interface Players {
@@ -28,6 +45,7 @@ export interface User {
   name: string;
   image: string;
   owner: boolean;
+  online: boolean;
 }
 
 export interface RoomUsers {
