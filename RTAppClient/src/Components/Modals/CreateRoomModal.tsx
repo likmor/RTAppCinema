@@ -59,7 +59,7 @@ const CreateRoomModal: React.FC<ModalProps> = ({
               <Input
                 maxLength={50}
                 ref={initialRef}
-                placeholder="Max lox"
+                placeholder="Room Name"
                 value={roomName}
                 onChange={(e) => {
                   setRoomName(e.target.value);
