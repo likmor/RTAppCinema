@@ -99,9 +99,9 @@ const Chat: React.FC<Props> = ({ invoke, messages, chatName, users, admin }) => 
         </Flex>
       ) : (
         <Flex direction="column" className="p-4">
-          {admin && <UserCard user={admin}></UserCard>}
+          {admin && <UserCard user={admin} />}
             {users.map((user, index) => (
-              <Flex direction="column" key={index} className="mb-4">
+              <Flex direction="column" key={index}>
                 <UserCard user={user} />
               </Flex>
             ))}
