@@ -6,8 +6,8 @@
 - Build and run
 
 ### Frontend:
-- npm install
-- Add config.ts file and add string exports with backend endpoints: SERVER_URL, SERVER_STATIC, SERVER_HUB, SERVER_FILES_API, SERVER_LOGIN_API, SERVER_FONTS_API (export const SERVER_URL : string = "http://server";)
+- npm i
+- Add config.ts file and add string exports with backend endpoints: SERVER_URL, SERVER_STATIC, SERVER_HUB, SERVER_FILES_API, SERVER_LOGIN_API, SERVER_FONTS_API (export const SERVER_URL = "http://server";)
 - npm run dev
 
 ### [Demo link](http://130.61.226.91/)
